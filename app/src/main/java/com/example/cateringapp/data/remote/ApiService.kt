@@ -1,0 +1,19 @@
+package com.example.cateringapp.data.remote
+
+import com.example.cateringapp.data.dto.LoginRequest
+import com.example.cateringapp.data.dto.LoginResponse
+import com.example.cateringapp.data.dto.RegisterRequest
+import retrofit2.Call
+import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.POST
+
+interface ApiService {
+    @POST("api/auth/login")
+    suspend fun loginUser(@Body request: LoginRequest): Response<LoginResponse>
+    @POST("api/auth/register")
+    fun registerUser(@Body request: RegisterRequest): Call<Void>
+
+
+}
+
