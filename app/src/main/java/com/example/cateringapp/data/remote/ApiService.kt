@@ -1,6 +1,7 @@
 package com.example.cateringapp.data.remote
 
 import com.example.cateringapp.data.dto.Commande
+import com.example.cateringapp.data.dto.CommandeDTO
 import com.example.cateringapp.data.dto.LoginRequest
 import com.example.cateringapp.data.dto.LoginResponse
 import com.example.cateringapp.data.dto.RegisterRequest
@@ -17,6 +18,9 @@ interface ApiService {
     fun registerUser(@Body request: RegisterRequest): Call<Void>
     @GET("api/commandes")
     suspend fun getCommandes(): List<Commande>
+    @POST("api/commandes")
+    suspend fun creerCommande(@Body commandeDTO: CommandeDTO): Response<Commande>
+
 
 
 }

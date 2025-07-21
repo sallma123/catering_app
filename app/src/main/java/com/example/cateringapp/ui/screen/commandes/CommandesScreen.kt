@@ -1,5 +1,6 @@
 package com.example.cateringapp.ui.screen.commandes
 
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,13 +18,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.cateringapp.data.dto.Commande
 import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
-fun CommandesScreen(viewModel: CommandeViewModel = viewModel()) {
+fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel = viewModel()) {
     val commandes by viewModel.commandes.collectAsState()
     val scrollState = rememberLazyListState()
     var query by remember { mutableStateOf("") }
@@ -114,7 +116,9 @@ fun CommandesScreen(viewModel: CommandeViewModel = viewModel()) {
             ) {
                 listOf("Particulier", "Entreprise", "Partenaire").forEach { label ->
                     Button(
-                        onClick = { },
+                        onClick = {
+                            navController.navigate("creerCommande/${label.uppercase()}")
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107)),
                         modifier = Modifier
                             .weight(1f)

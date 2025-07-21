@@ -5,7 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.example.cateringapp.ui.screen.commandes.CommandesScreen
+import androidx.navigation.navArgument
+import com.example.cateringapp.data.dto.CommandeDTO
+import com.example.cateringapp.ui.screen.commandes.*
 import com.example.cateringapp.ui.screen.paiement.PaiementScreen
 import com.example.cateringapp.ui.screen.calendrier.CalendrierScreen
 import com.example.cateringapp.ui.screen.profil.ProfilScreen
@@ -17,9 +19,33 @@ fun NavigationHost(navController: NavHostController, padding: PaddingValues) {
         navController = navController,
         startDestination = NavigationBarItems.Commandes.route
     ) {
-        composable(NavigationBarItems.Commandes.route) { CommandesScreen() }
+        // Onglets du menu principal
+        composable(NavigationBarItems.Commandes.route) { CommandesScreen(navController) }
         composable(NavigationBarItems.Paiement.route) { PaiementScreen() }
         composable(NavigationBarItems.Calendrier.route) { CalendrierScreen() }
         composable(NavigationBarItems.Profil.route) { ProfilScreen() }
+
+        // ✅ Page 1 : Création commande (avec paramètre typeClient)
+        composable("creerCommande/{typeClient}") { backStackEntry ->
+            val typeClient = backStackEntry.arguments?.getString("typeClient") ?: "PARTICULIER"
+            CreerCommandeScreen(typeClient = typeClient, navController = navController)
+        }
+
+        // ✅ Page 2 : Sélection des produits (via SavedStateHandle)
+        composable("selectionProduits") {
+            val commande = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<CommandeDTO>("commande")
+
+            if (commande != null) {
+                SelectionProduitsScreen(commandeDTO = commande, navController = navController)
+            }
+        }
+
+        // ✅ Page 3 : Fiche commande
+       /* composable("ficheCommande/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")?.toLongOrNull() ?: 0L
+            FicheCommandeScreen(id = id)
+        }*/
     }
 }

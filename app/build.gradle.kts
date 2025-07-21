@@ -66,4 +66,9 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     // pour les icons :
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.material3:material3:1.1.0")
+    implementation("androidx.compose.material3:material3:1.2.0")
+    implementation("androidx.compose.material3:material3-adaptive:1.0.0-alpha04")
+
+
 }
