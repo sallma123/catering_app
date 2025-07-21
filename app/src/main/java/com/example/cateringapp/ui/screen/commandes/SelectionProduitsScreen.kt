@@ -1,6 +1,8 @@
 package com.example.cateringapp.ui.screen.commandes
 
+import CommandeDTO
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -16,7 +18,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.cateringapp.data.dto.CommandeDTO
 import com.example.cateringapp.data.dto.ProduitCommande
 import com.example.cateringapp.data.dto.SectionProduit
 import com.example.cateringapp.data.remote.ApiService
@@ -52,47 +53,48 @@ fun SelectionProduitsScreen(
 
     fun recalculerTotal() {
         val base = prixParTable.toDoubleOrNull() ?: 0.0
-        val suppléments = sections
-            .flatMap { it.produits }
-            .filter { it.selectionne }
-            .sumOf { it.prix }
-        total = commandeDTO.nombreTables * base + suppléments
+        val totalSuppl = sections.flatMap { it.produits }.filter { it.selectionne }.sumOf { it.prix }
+        total = commandeDTO.nombreTables * base + totalSuppl
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
+            .background(Color(0xFF121212))
     ) {
-        Text(
-            "Produits pour ${commandeDTO.typeCommande}",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        sections.forEach { section ->
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+        ) {
             Text(
-                text = section.titre,
-                color = Color(0xFFFFC107),
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 16.sp
+                "Produits pour ${commandeDTO.typeCommande}",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
             )
 
-            section.produits.forEach { produit ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+            Spacer(modifier = Modifier.height(12.dp))
+
+            sections.forEach { section ->
+                var newNom by remember { mutableStateOf("") }
+                var newPrix by remember { mutableStateOf("") }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = section.titre,
+                        color = Color(0xFFFFC107),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp,
+                        modifier = Modifier.weight(1f)
+                    )
                     Checkbox(
-                        checked = produit.selectionne,
-                        onCheckedChange = {
-                            produit.selectionne = it
+                        checked = section.produits.all { it.selectionne },
+                        onCheckedChange = { checked ->
+                            section.produits.forEachIndexed { index, produit ->
+                                section.produits[index] = produit.copy(selectionne = checked)
+                            }
                             recalculerTotal()
                         },
                         colors = CheckboxDefaults.colors(
@@ -100,18 +102,32 @@ fun SelectionProduitsScreen(
                             uncheckedColor = Color.White
                         )
                     )
-                    Column {
-                        Text(produit.nom, color = Color.White)
-                        if (produit.prix > 0) {
-                            Text("${produit.prix} DH", color = Color.Gray, fontSize = 12.sp)
+                }
+
+                section.produits.forEachIndexed { index, produit ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Checkbox(
+                            checked = produit.selectionne,
+                            onCheckedChange = {
+                                section.produits[index] = produit.copy(selectionne = it)
+                                recalculerTotal()
+                            },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = Color(0xFFFFC107),
+                                uncheckedColor = Color.White
+                            )
+                        )
+                        Column {
+                            Text(produit.nom, color = Color.White)
+                            if (produit.prix > 0) {
+                                Text("${produit.prix} DH", color = Color.Gray, fontSize = 12.sp)
+                            }
                         }
                     }
                 }
-            }
-
-            if (section.titre == "Supplément") {
-                var newNom by remember { mutableStateOf("") }
-                var newPrix by remember { mutableStateOf("") }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     OutlinedTextField(
@@ -121,24 +137,24 @@ fun SelectionProduitsScreen(
                         modifier = Modifier.weight(1f),
                         colors = produitTextFieldColors()
                     )
-                    Spacer(Modifier.width(8.dp))
-                    OutlinedTextField(
-                        value = newPrix,
-                        onValueChange = { newPrix = it },
-                        label = { Text("Prix") },
-                        modifier = Modifier.width(100.dp),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        colors = produitTextFieldColors()
-                    )
+                    if (section.titre == "Supplément") {
+                        Spacer(Modifier.width(8.dp))
+                        OutlinedTextField(
+                            value = newPrix,
+                            onValueChange = { newPrix = it },
+                            label = { Text("Prix") },
+                            modifier = Modifier.width(100.dp),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            colors = produitTextFieldColors()
+                        )
+                    }
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            val prix = newPrix.toDoubleOrNull() ?: 0.0
+                            val prix = if (section.titre == "Supplément") newPrix.toDoubleOrNull() ?: 0.0 else 0.0
                             if (newNom.isNotBlank()) {
                                 section.produits.add(
-                                    ProduitCommande(newNom, section.titre, prix).apply {
-                                        selectionne = true
-                                    }
+                                    ProduitCommande(nom = newNom, categorie = section.titre, prix = prix, selectionne = true)
                                 )
                                 newNom = ""
                                 newPrix = ""
@@ -150,65 +166,72 @@ fun SelectionProduitsScreen(
                         Text("Ajouter", color = Color.Black)
                     }
                 }
+
+                Spacer(modifier = Modifier.height(12.dp))
             }
 
-            Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = prixParTable,
+                onValueChange = {
+                    prixParTable = it
+                    recalculerTotal()
+                },
+                label = { Text("Prix par table") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                colors = produitTextFieldColors()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text("Total : %.2f DH".format(total), color = Color.White, fontSize = 18.sp)
+            Spacer(modifier = Modifier.height(80.dp))
         }
 
-        OutlinedTextField(
-            value = prixParTable,
-            onValueChange = {
-                prixParTable = it
-                recalculerTotal()
-            },
-            label = { Text("Prix par table") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(),
-            colors = produitTextFieldColors()
-        )
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterHorizontally)
+                .fillMaxWidth()
+                .background(Color(0xFF121212))
+                .padding(16.dp)
+        ) {
+            Button(
+                onClick = {
+                    val prix = prixParTable.toDoubleOrNull() ?: 0.0
+                    val produits = sections.flatMap { it.produits }.filter { it.selectionne }
 
-        Spacer(Modifier.height(8.dp))
-        Text("Total : %.2f DH".format(total), color = Color.White, fontSize = 18.sp)
+                    if (produits.isEmpty()) {
+                        Toast.makeText(context, "Sélectionnez au moins un produit", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
-        Spacer(Modifier.height(16.dp))
+                    val commandeFinale = commandeDTO.copy(
+                        prixParTable = prix,
+                        produits = produits
+                    )
 
-        Button(
-            onClick = {
-                val prix = prixParTable.toDoubleOrNull() ?: 0.0
-                val produits = sections.flatMap { it.produits }.filter { it.selectionne }
-
-                if (produits.isEmpty()) {
-                    Toast.makeText(context, "Sélectionnez au moins un produit", Toast.LENGTH_SHORT).show()
-                    return@Button
-                }
-
-                val commandeFinale = commandeDTO.copy(
-                    prixParTable = prix,
-                    produits = produits
-                )
-
-                CoroutineScope(Dispatchers.IO).launch {
-                    try {
-                        val response = apiService.creerCommande(commandeFinale)
-                        withContext(Dispatchers.Main) {
-                            if (response.isSuccessful && response.body() != null) {
-                                val id = response.body()!!.id
-                                navController.navigate("ficheCommande/$id")
-                            } else {
-                                Toast.makeText(context, "Erreur API", Toast.LENGTH_SHORT).show()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val response = apiService.creerCommande(commandeFinale)
+                            withContext(Dispatchers.Main) {
+                                if (response.isSuccessful && response.body() != null) {
+                                    val id = response.body()!!.id
+                                    navController.navigate("ficheCommande/$id")
+                                } else {
+                                    Toast.makeText(context, "Erreur API", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, "Erreur réseau", Toast.LENGTH_SHORT).show()
                             }
                         }
-                    } catch (e: Exception) {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(context, "Erreur réseau", Toast.LENGTH_SHORT).show()
-                        }
                     }
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
-        ) {
-            Text("Valider", fontWeight = FontWeight.Bold, color = Color.Black)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
+            ) {
+                Text("Valider", fontWeight = FontWeight.Bold, color = Color.Black)
+            }
         }
     }
 }

@@ -1,12 +1,13 @@
 package com.example.cateringapp.data.dto
-
+import java.io.Serializable
 data class ProduitCommande(
     var id: Long? = null,
     var nom: String,
     var categorie: String,     // Exemple : "Réception", "Dîner", etc.
     var prix: Double,
     var selectionne: Boolean = false
-) {
+) : Serializable
+{
     // ✅ Constructeur secondaire équivalent à celui en Java
     constructor(nom: String, categorie: String, prix: Double) : this(
         id = null,
