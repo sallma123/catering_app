@@ -5,6 +5,7 @@ import com.example.cateringapp.data.dto.Commande
 import com.example.cateringapp.data.dto.LoginRequest
 import com.example.cateringapp.data.dto.LoginResponse
 import com.example.cateringapp.data.dto.RegisterRequest
+import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Response
@@ -27,4 +28,13 @@ interface ApiService {
     // ✅ Nouvelle méthode pour télécharger la fiche PDF
     @GET("api/commandes/{id}/fiche")
     fun telechargerFiche(@Path("id") id: Long): Call<ResponseBody>
+    @Multipart
+    //uploader header et footer
+    @POST("api/profile/uploadHeaderFooter")
+    suspend fun uploadHeaderAndFooter(
+        @Part header: MultipartBody.Part,
+        @Part footer: MultipartBody.Part
+    ): Response<Void>
+
+
 }

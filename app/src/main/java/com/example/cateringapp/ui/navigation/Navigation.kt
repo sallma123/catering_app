@@ -11,6 +11,7 @@ import com.example.cateringapp.ui.screen.commandes.*
 import com.example.cateringapp.ui.screen.paiement.PaiementScreen
 import com.example.cateringapp.ui.screen.calendrier.CalendrierScreen
 import com.example.cateringapp.ui.screen.profil.ProfilScreen
+import com.example.cateringapp.ui.screen.profil.UploadHeaderFooterScreen
 import com.example.cateringcompose.ui.NavigationBarItems
 
 @Composable
@@ -23,7 +24,11 @@ fun NavigationHost(navController: NavHostController, padding: PaddingValues) {
         composable(NavigationBarItems.Commandes.route) { CommandesScreen(navController) }
         composable(NavigationBarItems.Paiement.route) { PaiementScreen() }
         composable(NavigationBarItems.Calendrier.route) { CalendrierScreen() }
-        composable(NavigationBarItems.Profil.route) { ProfilScreen() }
+        composable(NavigationBarItems.Profil.route) {
+            ProfilScreen(navController)
+        }
+
+
 
         // ✅ Page 1 : Création commande (avec paramètre typeClient)
         composable("creerCommande/{typeClient}") { backStackEntry ->
@@ -50,6 +55,10 @@ fun NavigationHost(navController: NavHostController, padding: PaddingValues) {
             val id = backStackEntry.arguments?.getString("id")?.toLongOrNull() ?: 0L
             FicheCommandeScreen(id = id)
         }
+        composable("uploadHeaderFooter") {
+            UploadHeaderFooterScreen()
+        }
+
 
     }
 }

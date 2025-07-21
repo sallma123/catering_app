@@ -17,9 +17,11 @@ import com.example.cateringapp.ui.screen.auth.LoginActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import androidx.navigation.NavHostController
+
 
 @Composable
-fun ProfilScreen() {
+fun ProfilScreen(navController: NavHostController) {
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
     val coroutineScope = rememberCoroutineScope()
@@ -43,7 +45,6 @@ fun ProfilScreen() {
                 onClick = {
                     coroutineScope.launch(Dispatchers.IO) {
                         sessionManager.logout()
-                        // Redirection vers Login
                         context.startActivity(Intent(context, LoginActivity::class.java))
                     }
                 },
@@ -53,6 +54,22 @@ fun ProfilScreen() {
             ) {
                 Text("Se déconnecter", color = Color.Black)
             }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ✅ Bouton pour uploader entête/pied de page
+            Button(
+                onClick = {
+                    navController.navigate("uploadHeaderFooter")
+                },
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("📄 Modifier entête & pied de page", color = Color.Black)
+            }
+
         }
     }
 }
+
