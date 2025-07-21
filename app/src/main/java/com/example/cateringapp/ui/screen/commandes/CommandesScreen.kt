@@ -19,8 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cateringapp.data.dto.Commande
 import com.example.cateringapp.viewmodel.CommandeViewModel
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
 import java.util.*
 
 @Composable
@@ -29,28 +28,36 @@ fun CommandesScreen(viewModel: CommandeViewModel = viewModel()) {
     val scrollState = rememberLazyListState()
     var query by remember { mutableStateOf("") }
 
-    val grouped = commandes
+    val sdfInput = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val sdfMois = SimpleDateFormat("MMMM", Locale.FRENCH)
+    val sdfSort = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+    val commandesTriees = commandes
         .filter {
             query.isBlank() || it.nomClient.contains(query, ignoreCase = true) || it.salle.contains(query, ignoreCase = true)
         }
-        .groupBy {
+        .sortedBy {
             try {
-                val sdf = java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                val date = sdf.parse(it.date)
-                val mois = java.text.SimpleDateFormat("MMMM", Locale.FRENCH).format(date!!)
-                mois.replaceFirstChar { it.uppercase() }
-
+                sdfSort.parse(it.date)
             } catch (e: Exception) {
-                "Inconnue"
+                null
             }
         }
+
+    val grouped = commandesTriees.groupBy {
+        try {
+            val date = sdfInput.parse(it.date)
+            sdfMois.format(date!!).replaceFirstChar { c -> c.uppercase() }
+        } catch (e: Exception) {
+            "Inconnue"
+        }
+    }
 
     Scaffold(
         bottomBar = { BottomNavBar() },
         containerColor = Color(0xFF121212)
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            // 🔍 Barre de recherche
             OutlinedTextField(
                 value = query,
                 onValueChange = { query = it },
@@ -82,7 +89,7 @@ fun CommandesScreen(viewModel: CommandeViewModel = viewModel()) {
                 grouped.forEach { (mois, items) ->
                     item {
                         Text(
-                            text = mois.replaceFirstChar { it.uppercase() },
+                            text = mois,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -107,7 +114,7 @@ fun CommandesScreen(viewModel: CommandeViewModel = viewModel()) {
             ) {
                 listOf("Particulier", "Entreprise", "Partenaire").forEach { label ->
                     Button(
-                        onClick = { /* future filtrage */ },
+                        onClick = { },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107)),
                         modifier = Modifier
                             .weight(1f)
@@ -132,6 +139,13 @@ fun CommandesScreen(viewModel: CommandeViewModel = viewModel()) {
 
 @Composable
 fun CommandeCard(commande: Commande) {
+    val dateFormatted = try {
+        val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(commande.date)
+        SimpleDateFormat("dd/MM", Locale.getDefault()).format(date!!)
+    } catch (e: Exception) {
+        "??/??"
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -155,7 +169,7 @@ fun CommandeCard(commande: Commande) {
                 Text("${commande.nomClient} | ${commande.salle} | ${commande.nombreTables} tables", fontSize = 14.sp)
             }
             Text(
-                text = commande.date,
+                text = dateFormatted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp
             )
@@ -175,7 +189,7 @@ fun BottomNavBar() {
         items.forEach { (label, icon) ->
             NavigationBarItem(
                 selected = label == "Commandes",
-                onClick = { /* Navigation future */ },
+                onClick = { },
                 icon = { Icon(imageVector = icon, contentDescription = label) },
                 label = { Text(label) },
                 colors = NavigationBarItemDefaults.colors(
