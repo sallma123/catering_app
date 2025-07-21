@@ -1,6 +1,7 @@
 package com.example.cateringapp.ui.screen.commandes
 
 import CommandeDTO
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -212,11 +213,13 @@ fun SelectionProduitsScreen(
                                     Toast.makeText(context, "Erreur API", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        } catch (e: Exception) {
+                        }catch (e: Exception) {
+                            Log.e("API_ERROR", "Erreur réseau : ${e.localizedMessage}", e)
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(context, "Erreur réseau", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Erreur réseau : ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                             }
                         }
+
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
