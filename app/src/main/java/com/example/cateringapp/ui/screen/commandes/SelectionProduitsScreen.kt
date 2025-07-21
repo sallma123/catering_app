@@ -57,16 +57,15 @@ fun SelectionProduitsScreen(
         total = commandeDTO.nombreTables * base + totalSuppl
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF121212))
-    ) {
+    Scaffold(
+        containerColor = Color(0xFF121212)
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState())
+                .padding(paddingValues)
                 .padding(16.dp)
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
             Text(
                 "Produits pour ${commandeDTO.typeCommande}",
@@ -184,16 +183,9 @@ fun SelectionProduitsScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
             Text("Total : %.2f DH".format(total), color = Color.White, fontSize = 18.sp)
-            Spacer(modifier = Modifier.height(80.dp))
-        }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .fillMaxWidth()
-                .background(Color(0xFF121212))
-                .padding(16.dp)
-        ) {
+            Spacer(modifier = Modifier.height(16.dp))
+
             Button(
                 onClick = {
                     val prix = prixParTable.toDoubleOrNull() ?: 0.0
@@ -232,6 +224,8 @@ fun SelectionProduitsScreen(
             ) {
                 Text("Valider", fontWeight = FontWeight.Bold, color = Color.Black)
             }
+
+            Spacer(modifier = Modifier.height(100.dp)) // Pour ne pas être collé à la barre de navigation
         }
     }
 }
