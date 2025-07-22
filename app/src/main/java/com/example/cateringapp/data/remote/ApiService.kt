@@ -25,16 +25,29 @@ interface ApiService {
     @POST("api/commandes")
     suspend fun creerCommande(@Body commandeDTO: CommandeDTO): Response<Commande>
 
-    // ✅ Nouvelle méthode pour télécharger la fiche PDF
+    // ✅ Télécharger le PDF
     @GET("api/commandes/{id}/fiche")
     fun telechargerFiche(@Path("id") id: Long): Call<ResponseBody>
+
+    // ✅ Upload combiné : entête + pied de page
     @Multipart
-    //uploader header et footer
     @POST("api/profile/uploadHeaderFooter")
     suspend fun uploadHeaderAndFooter(
         @Part header: MultipartBody.Part,
         @Part footer: MultipartBody.Part
     ): Response<Void>
 
+    // ✅ Upload uniquement l'entête
+    @Multipart
+    @POST("api/profile/uploadHeader")
+    suspend fun uploadHeader(
+        @Part file: MultipartBody.Part
+    ): Response<Void>
 
+    // ✅ Upload uniquement le pied de page
+    @Multipart
+    @POST("api/profile/uploadFooter")
+    suspend fun uploadFooter(
+        @Part file: MultipartBody.Part
+    ): Response<Void>
 }
