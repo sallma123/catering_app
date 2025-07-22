@@ -22,6 +22,7 @@ import com.example.cateringapp.ui.screen.commandes.BottomNavBar
 import com.example.cateringapp.ui.screen.commandes.CommandeCard
 import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -31,7 +32,7 @@ fun dateToLocalDateCompat(date: Date): LocalDate {
     val calendar = Calendar.getInstance().apply { time = date }
     return LocalDate.of(
         calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH) + 1, // ⚠️ Mois commence à 0
+        calendar.get(Calendar.MONTH) + 1,
         calendar.get(Calendar.DAY_OF_MONTH)
     )
 }
@@ -43,17 +44,17 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
     val commandesDates = commandes.mapNotNull {
         try {
             sdf.parse(it.date)?.let { date -> dateToLocalDateCompat(date) }
-
         } catch (e: Exception) { null }
     }.toSet()
 
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    val today = remember { LocalDate.now() }
+    var selectedDate by remember { mutableStateOf(today) }
     var currentMonth by remember { mutableStateOf(YearMonth.now()) }
 
     val jours = listOf("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
     val firstDayOfMonth = currentMonth.atDay(1)
     val daysInMonth = currentMonth.lengthOfMonth()
-    val startOffset = (firstDayOfMonth.dayOfWeek.value % 7)
+    val startOffset = (firstDayOfMonth.dayOfWeek.ordinal + 7) % 7 // décalage pour commencer lundi
 
     val commandesDuJour = commandes.filter {
         try {
@@ -65,18 +66,16 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
         }
     }
 
-
     Scaffold(
         bottomBar = { BottomNavBar() },
         containerColor = Color(0xFF121212)
     ) { padding ->
-        Column(modifier = Modifier
-            .padding(padding)
-            .fillMaxSize()
-            .background(Color(0xFF121212))
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(Color(0xFF121212))
         ) {
-
-            // Mois + navigation
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -98,7 +97,6 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
                 }
             }
 
-            // En-têtes jours
             Row(modifier = Modifier.fillMaxWidth()) {
                 jours.forEach {
                     Text(
@@ -110,7 +108,6 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
                 }
             }
 
-            // Grille calendrier
             val totalBoxes = startOffset + daysInMonth
             val weeks = (totalBoxes / 7) + if (totalBoxes % 7 != 0) 1 else 0
             Column {
@@ -123,8 +120,10 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
                                 Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {}
                             } else {
                                 val date = currentMonth.atDay(dayCounter)
+                                val isToday = date == today
                                 val isSelected = date == selectedDate
                                 val hasCommande = commandesDates.contains(date)
+
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
@@ -138,14 +137,21 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
                                             modifier = Modifier
                                                 .size(36.dp)
                                                 .background(
-                                                    if (isSelected) Color(0xFFFFC107) else Color.Transparent,
+                                                    when {
+                                                        isSelected -> Color(0xFFFFC107)
+                                                        else -> Color.Transparent
+                                                    },
                                                     shape = MaterialTheme.shapes.small
                                                 ),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
                                                 text = date.dayOfMonth.toString(),
-                                                color = if (isSelected) Color.Black else Color.White,
+                                                color = when {
+                                                    isSelected -> Color.Black
+                                                    isToday -> Color(0xFFFFC107)
+                                                    else -> Color.White
+                                                },
                                                 fontSize = 14.sp
                                             )
                                         }
@@ -175,7 +181,12 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
             )
 
-            LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
                 items(commandesDuJour) {
                     CommandeCard(it)
                 }
