@@ -5,12 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -22,7 +24,6 @@ import com.example.cateringapp.ui.screen.commandes.BottomNavBar
 import com.example.cateringapp.ui.screen.commandes.CommandeCard
 import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
-import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.TextStyle
@@ -54,7 +55,7 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
     val jours = listOf("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
     val firstDayOfMonth = currentMonth.atDay(1)
     val daysInMonth = currentMonth.lengthOfMonth()
-    val startOffset = (firstDayOfMonth.dayOfWeek.ordinal + 7) % 7 // décalage pour commencer lundi
+    val startOffset = (firstDayOfMonth.dayOfWeek.ordinal + 7) % 7
 
     val commandesDuJour = commandes.filter {
         try {
@@ -136,12 +137,12 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
                                         Box(
                                             modifier = Modifier
                                                 .size(36.dp)
+                                                .clip(CircleShape)
                                                 .background(
-                                                    when {
+                                                    color = when {
                                                         isSelected -> Color(0xFFFFC107)
                                                         else -> Color.Transparent
-                                                    },
-                                                    shape = MaterialTheme.shapes.small
+                                                    }
                                                 ),
                                             contentAlignment = Alignment.Center
                                         ) {
@@ -155,12 +156,15 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
                                                 fontSize = 14.sp
                                             )
                                         }
-                                        if (hasCommande) {
+                                        Spacer(modifier = Modifier.height(0.1.dp))
+                                        if (hasCommande && !isSelected) {
                                             Box(
                                                 modifier = Modifier
                                                     .size(6.dp)
-                                                    .background(Color(0xFFFFC107), shape = MaterialTheme.shapes.extraSmall)
+                                                    .background(Color(0xFFFFC107), shape = CircleShape)
                                             )
+                                        } else {
+                                            Spacer(modifier = Modifier.height(6.dp))
                                         }
                                     }
                                 }
