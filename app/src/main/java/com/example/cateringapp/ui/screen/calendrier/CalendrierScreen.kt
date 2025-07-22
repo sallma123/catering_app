@@ -1,27 +1,185 @@
 package com.example.cateringapp.ui.screen.calendrier
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cateringapp.data.dto.Commande
+import com.example.cateringapp.ui.screen.commandes.BottomNavBar
+import com.example.cateringapp.ui.screen.commandes.CommandeCard
+import com.example.cateringapp.viewmodel.CommandeViewModel
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.YearMonth
+import java.time.format.TextStyle
+import java.util.*
+
+fun dateToLocalDateCompat(date: Date): LocalDate {
+    val calendar = Calendar.getInstance().apply { time = date }
+    return LocalDate.of(
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH) + 1, // ⚠️ Mois commence à 0
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+}
 
 @Composable
-fun CalendrierScreen() {
-    Box(
-        modifier = Modifier
+fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
+    val commandes by viewModel.commandes.collectAsState()
+    val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val commandesDates = commandes.mapNotNull {
+        try {
+            sdf.parse(it.date)?.let { date -> dateToLocalDateCompat(date) }
+
+        } catch (e: Exception) { null }
+    }.toSet()
+
+    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
+    var currentMonth by remember { mutableStateOf(YearMonth.now()) }
+
+    val jours = listOf("Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim")
+    val firstDayOfMonth = currentMonth.atDay(1)
+    val daysInMonth = currentMonth.lengthOfMonth()
+    val startOffset = (firstDayOfMonth.dayOfWeek.value % 7)
+
+    val commandesDuJour = commandes.filter {
+        try {
+            val date = sdf.parse(it.date)
+            val commandeDate = dateToLocalDateCompat(date!!)
+            commandeDate == selectedDate
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+
+    Scaffold(
+        bottomBar = { BottomNavBar() },
+        containerColor = Color(0xFF121212)
+    ) { padding ->
+        Column(modifier = Modifier
+            .padding(padding)
             .fillMaxSize()
-            .background(Color(0xFF2E2E2E)),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Écran Calendrier",
-            fontSize = 20.sp,
-            color = Color(0xFF03DAC5)
-        )
+            .background(Color(0xFF121212))
+        ) {
+
+            // Mois + navigation
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { currentMonth = currentMonth.minusMonths(1) }) {
+                    Icon(Icons.Default.ChevronLeft, contentDescription = null, tint = Color.White)
+                }
+                Text(
+                    text = "${currentMonth.month.getDisplayName(TextStyle.FULL, Locale.FRENCH).replaceFirstChar { it.uppercase() }} ${currentMonth.year}",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                IconButton(onClick = { currentMonth = currentMonth.plusMonths(1) }) {
+                    Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.White)
+                }
+            }
+
+            // En-têtes jours
+            Row(modifier = Modifier.fillMaxWidth()) {
+                jours.forEach {
+                    Text(
+                        text = it,
+                        color = Color.LightGray,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            // Grille calendrier
+            val totalBoxes = startOffset + daysInMonth
+            val weeks = (totalBoxes / 7) + if (totalBoxes % 7 != 0) 1 else 0
+            Column {
+                var dayCounter = 1
+                repeat(weeks) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        repeat(7) { dayIndex ->
+                            val boxIndex = it * 7 + dayIndex
+                            if (boxIndex < startOffset || dayCounter > daysInMonth) {
+                                Box(modifier = Modifier.weight(1f).aspectRatio(1f)) {}
+                            } else {
+                                val date = currentMonth.atDay(dayCounter)
+                                val isSelected = date == selectedDate
+                                val hasCommande = commandesDates.contains(date)
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .aspectRatio(1f)
+                                        .padding(2.dp)
+                                        .clickable { selectedDate = date },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .background(
+                                                    if (isSelected) Color(0xFFFFC107) else Color.Transparent,
+                                                    shape = MaterialTheme.shapes.small
+                                                ),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = date.dayOfMonth.toString(),
+                                                color = if (isSelected) Color.Black else Color.White,
+                                                fontSize = 14.sp
+                                            )
+                                        }
+                                        if (hasCommande) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(6.dp)
+                                                    .background(Color(0xFFFFC107), shape = MaterialTheme.shapes.extraSmall)
+                                            )
+                                        }
+                                    }
+                                }
+                                dayCounter++
+                            }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                "Commandes du ${selectedDate.dayOfMonth} ${selectedDate.month.getDisplayName(TextStyle.FULL, Locale.FRENCH)} ${selectedDate.year}",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            )
+
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp)) {
+                items(commandesDuJour) {
+                    CommandeCard(it)
+                }
+            }
+        }
     }
 }
