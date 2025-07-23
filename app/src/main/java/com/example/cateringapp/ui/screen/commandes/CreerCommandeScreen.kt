@@ -141,7 +141,7 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController) {
                     nombreTables = nombre.toIntOrNull() ?: 0,
                     prixParTable = 0.0,
                     typeClient = typeClient.uppercase(),
-                    typeCommande = typeCommande,
+                    typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
                     statut = statut,
                     date = isoDate,
                     produits = emptyList()
@@ -216,3 +216,15 @@ fun textFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedLabelColor = Color.White,
     unfocusedLabelColor = Color.Gray
 )
+fun mapTypeCommandeLabelToEnum(label: String): String {
+    return when (label.trim()) {
+        "Mariage" -> "MARIAGE"
+        "Anniversaire" -> "ANNIVERSAIRE"
+        "Baptême" -> "BAPTEME"
+        "Buffet de soutenance" -> "BUFFET_DE_SOUTENANCE"
+        "Repas coffret" -> "REPAS_COFFRET"
+        "Séminaire" -> "SÉMINAIRE"
+        else -> label.uppercase().replace(" ", "_")
+    }
+}
+

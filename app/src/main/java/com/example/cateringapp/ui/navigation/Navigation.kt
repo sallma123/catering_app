@@ -48,13 +48,11 @@ fun NavigationHost(navController: NavHostController, padding: PaddingValues) {
         }
 
         // ✅ Page 3 : Fiche commande
-        composable(
-            "ficheCommande/{id}",
-            arguments = listOf(navArgument("id") { defaultValue = "0" })
-        ) { backStackEntry ->
-            val id = backStackEntry.arguments?.getString("id")?.toLongOrNull() ?: 0L
-            FicheCommandeScreen(id = id)
+        composable("ficheCommande/{id}") { backStackEntry ->
+            val id = backStackEntry.arguments?.getString("id")?.toLong() ?: 0
+            FicheCommandeScreen(id = id, navController = navController)
         }
+
         composable("uploadHeaderFooter") {
             UploadHeaderFooterScreen()
         }

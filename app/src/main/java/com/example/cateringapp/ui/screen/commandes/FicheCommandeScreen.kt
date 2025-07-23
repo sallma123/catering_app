@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.navigation.NavController
 import com.example.cateringapp.data.remote.ApiService
 import com.example.cateringapp.data.remote.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +29,8 @@ import java.io.FileOutputStream
 import java.io.InputStream
 
 @Composable
-fun FicheCommandeScreen(id: Long, apiService: ApiService = RetrofitInstance.api) {
+fun FicheCommandeScreen(id: Long, navController: NavController, apiService: ApiService = RetrofitInstance.api) {
+
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(true) }
     var pdfUri by remember { mutableStateOf<Uri?>(null) }
@@ -72,30 +74,42 @@ fun FicheCommandeScreen(id: Long, apiService: ApiService = RetrofitInstance.api)
                     title = { Text("Erreur") },
                     text = { Text(errorMessage ?: "Erreur inconnue") },
                     confirmButton = {
-                        TextButton(onClick = { /* tu peux ajouter navController.popBackStack() ici */ }) {
-                            Text("Fermer")
+                        TextButton(onClick = {
+                            navController.popBackStack("Commandes", inclusive = false)
+                        })
+ {
+                            Text("❌ Fermer")
                         }
+
                     }
                 )
             }
 
             pdfUri != null && showDialog -> {
                 AlertDialog(
-                    onDismissRequest = { },
+                    onDismissRequest = { showDialog = false },
                     title = { Text("✅ Fiche PDF générée") },
                     text = { Text("Que souhaitez-vous faire ?") },
                     confirmButton = {
                         TextButton(onClick = {
                             ouvrirPDF(context, pdfUri!!)
+                            showDialog = false
                         }) {
                             Text("📄 Ouvrir")
                         }
                     },
                     dismissButton = {
-                        TextButton(onClick = {
-                            partagerPDF(context, pdfUri!!)
-                        }) {
-                            Text("📤 Partager")
+                        Row {
+                            TextButton(onClick = {
+                                showDialog = false
+                                navController.navigate("Commandes") {
+                                    popUpTo("Commandes") { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }) {
+                                Text("❌ Fermer")
+                            }
+
                         }
                     },
                     icon = {
@@ -106,14 +120,16 @@ fun FicheCommandeScreen(id: Long, apiService: ApiService = RetrofitInstance.api)
                     titleContentColor = Color.Black,
                     textContentColor = Color.DarkGray
                 )
+
             }
         }
     }
 
     // Gérer le bouton retour
     BackHandler(enabled = !isLoading && !showDialog) {
-        // Tu peux gérer la navigation retour ici si besoin
+        navController.popBackStack("Commandes", inclusive = false)
     }
+
 }
 
 private sealed class ResultPDF {
