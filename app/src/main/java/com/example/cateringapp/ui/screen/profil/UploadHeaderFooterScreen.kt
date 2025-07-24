@@ -68,7 +68,7 @@ fun UploadHeaderFooterScreen() {
     ) {
         Spacer(modifier = Modifier.height(24.dp))
         Text(
-            text = "Ajouter l'en-tête & pied de page",
+            text = "Ajouter l'entête & pied de page",
             color = Color.White,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(bottom = 4.dp)

@@ -51,4 +51,10 @@ class CommandeViewModel : ViewModel() {
     fun dateAvecCommandes(): Set<String> {
         return _commandesParDate.value.keys
     }
+    fun supprimerCommande(id: Long) {
+        viewModelScope.launch {
+
+        }
+    }
+
 }

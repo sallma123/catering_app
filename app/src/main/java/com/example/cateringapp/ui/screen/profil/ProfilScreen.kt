@@ -33,11 +33,23 @@ fun ProfilScreen(navController: NavHostController) {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Écran Profil",
-                fontSize = 20.sp,
-                color = Color.White
-            )
+
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+
+
+            // Bouton pour uploader entête/pied de page
+            Button(
+                onClick = {
+                    navController.navigate("uploadHeaderFooter")
+                },
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Modifier entête & pied de page", color = Color.Black)
+            }
 
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -55,19 +67,7 @@ fun ProfilScreen(navController: NavHostController) {
                 Text("Se déconnecter", color = Color.Black)
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
 
-            // ✅ Bouton pour uploader entête/pied de page
-            Button(
-                onClick = {
-                    navController.navigate("uploadHeaderFooter")
-                },
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-            ) {
-                Text("📄 Modifier entête & pied de page", color = Color.Black)
-            }
 
         }
     }

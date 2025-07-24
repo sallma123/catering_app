@@ -67,8 +67,10 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     // pour les icons :
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.compose.material3:material3:1.1.0")
     implementation("androidx.compose.material3:material3:1.2.0")
+    implementation("androidx.compose.material:material")
+    implementation("androidx.compose.material:material:1.6.0") // ou version compatible
+
     implementation("androidx.compose.material3:material3-adaptive:1.0.0-alpha04")
     implementation("io.coil-kt:coil-compose:2.4.0")
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
@@ -76,6 +78,8 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("me.saket.swipe:swipe:1.0.0")
+
 
 
 

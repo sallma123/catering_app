@@ -23,7 +23,9 @@ fun NavigationHost(navController: NavHostController, padding: PaddingValues) {
         // Onglets du menu principal
         composable(NavigationBarItems.Commandes.route) { CommandesScreen(navController) }
         composable(NavigationBarItems.Paiement.route) { PaiementScreen() }
-        composable(NavigationBarItems.Calendrier.route) { CalendrierScreen() }
+        composable(NavigationBarItems.Calendrier.route) {
+            CalendrierScreen(navController = navController)
+        }
         composable(NavigationBarItems.Profil.route) {
             ProfilScreen(navController)
         }

@@ -19,8 +19,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import com.example.cateringapp.data.dto.Commande
-import com.example.cateringapp.ui.screen.commandes.BottomNavBar
+import com.example.cateringapp.ui.navigation.BottomNavBar
 import com.example.cateringapp.ui.screen.commandes.CommandeCard
 import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
@@ -39,7 +40,7 @@ fun dateToLocalDateCompat(date: Date): LocalDate {
 }
 
 @Composable
-fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
+fun CalendrierScreen(navController: NavController, viewModel: CommandeViewModel = viewModel()) {
     val commandes by viewModel.commandes.collectAsState()
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val commandesDates = commandes.mapNotNull {
@@ -68,7 +69,7 @@ fun CalendrierScreen(viewModel: CommandeViewModel = viewModel()) {
     }
 
     Scaffold(
-        bottomBar = { BottomNavBar() },
+        bottomBar = { BottomNavBar(navController) },
         containerColor = Color(0xFF121212)
     ) { padding ->
         Column(

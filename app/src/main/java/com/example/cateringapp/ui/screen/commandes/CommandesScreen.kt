@@ -1,18 +1,18 @@
 package com.example.cateringapp.ui.screen.commandes
 
-import androidx.compose.ui.platform.LocalContext
+import android.content.Context
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -20,6 +20,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.cateringapp.data.dto.Commande
+import com.example.cateringapp.ui.components.CommandeSwipeItem
+import com.example.cateringapp.ui.navigation.BottomNavBar
 import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -29,6 +31,7 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
     val commandes by viewModel.commandes.collectAsState()
     val scrollState = rememberLazyListState()
     var query by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     val sdfInput = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val sdfMois = SimpleDateFormat("MMMM", Locale.FRENCH)
@@ -56,7 +59,7 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
     }
 
     Scaffold(
-        bottomBar = { BottomNavBar() },
+        bottomBar = { BottomNavBar(navController) },
         containerColor = Color(0xFF121212)
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
@@ -102,7 +105,25 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                         )
                     }
                     items(items) { commande ->
-                        CommandeCard(commande)
+                        CommandeSwipeItem(
+                            commande = commande,
+                            onDeleteClick = {
+                                Toast.makeText(
+                                    context,
+                                    "Suppression bientôt disponible",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            onFicheClick = { navController.navigate("ficheCommande/${commande.id}") },
+                            onStarClick = {
+                                Toast.makeText(
+                                    context,
+                                    "Favoris bientôt disponible",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            },
+                            content = { CommandeCard(commande) }
+                        )
                     }
                 }
             }
@@ -170,36 +191,15 @@ fun CommandeCard(commande: Commande) {
                     fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
-                Text("${commande.nomClient} | ${commande.salle} | ${commande.nombreTables} tables", fontSize = 14.sp)
+                Text(
+                    text = "${commande.nomClient} | ${commande.salle} | ${commande.nombreTables} tables",
+                    fontSize = 14.sp
+                )
             }
             Text(
                 text = dateFormatted,
                 fontWeight = FontWeight.Medium,
                 fontSize = 14.sp
-            )
-        }
-    }
-}
-
-@Composable
-fun BottomNavBar() {
-    NavigationBar(containerColor = Color.White) {
-        val items = listOf(
-            Pair("Commandes", Icons.Default.List),
-            Pair("Paiement", Icons.Default.CreditCard),
-            Pair("Calendrier", Icons.Default.DateRange),
-            Pair("Profil", Icons.Default.Person)
-        )
-        items.forEach { (label, icon) ->
-            NavigationBarItem(
-                selected = label == "Commandes",
-                onClick = { },
-                icon = { Icon(imageVector = icon, contentDescription = label) },
-                label = { Text(label) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFFFFC107),
-                    selectedTextColor = Color(0xFFFFC107)
-                )
             )
         }
     }
