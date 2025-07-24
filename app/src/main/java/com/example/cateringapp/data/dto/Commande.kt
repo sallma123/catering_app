@@ -2,6 +2,7 @@ package com.example.cateringapp.data.dto
 
 data class Commande(
     val id: Long,
+    val numeroCommande: String,
     val typeClient: String,
     val typeCommande: String,
     val statut: String,
