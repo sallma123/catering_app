@@ -128,10 +128,11 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController) {
 
         Button(
             onClick = {
-                if (nomClient.isBlank() || salle.isBlank() || nombre.isBlank() || typeCommande.isBlank()) {
-                    Toast.makeText(context, "Veuillez remplir tous les champs", Toast.LENGTH_SHORT).show()
+                if (salle.isBlank() || nombre.isBlank() || typeCommande.isBlank()) {
+                    Toast.makeText(context, "Veuillez remplir les champs obligatoires", Toast.LENGTH_SHORT).show()
                     return@Button
                 }
+
 
                 val isoDate = convertToIsoDate(date)
 
