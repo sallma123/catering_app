@@ -37,7 +37,7 @@ fun CommandeSwipeItem(
     commande: Commande,
     onDeleteClick: () -> Unit,
     onFicheClick: () -> Unit,
-    onStarClick: () -> Unit,
+    onDuplicateClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
     val maxSwipe = 180.dp
@@ -60,7 +60,12 @@ fun CommandeSwipeItem(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            ActionButton(color = Color(0xFFAD9FFF), icon = Icons.Default.Star, onClick = onStarClick)
+            ActionButton(
+                color = Color(0xFFAD9FFF),
+                icon = Icons.Default.ContentCopy,
+                onClick = onDuplicateClick
+            )
+
             ActionButton(color = Color(0xFFFFC107), icon = Icons.Default.Description, onClick = onFicheClick)
             ActionButton(color = Color.Red, icon = Icons.Default.Delete, onClick = onDeleteClick)
         }

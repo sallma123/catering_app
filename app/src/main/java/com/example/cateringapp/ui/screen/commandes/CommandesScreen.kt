@@ -115,10 +115,10 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                                 ).show()
                             },
                             onFicheClick = { navController.navigate("ficheCommande/${commande.id}") },
-                            onStarClick = {
+                            onDuplicateClick = {
                                 Toast.makeText(
                                     context,
-                                    "Favoris bientôt disponible",
+                                    "Duplication bientôt disponible",
                                     Toast.LENGTH_SHORT
                                 ).show()
                             },
