@@ -2,6 +2,7 @@ import com.example.cateringapp.data.dto.ProduitCommande
 import java.io.Serializable
 
 data class CommandeDTO(
+    val id: Long? = null,  // ✅ ID ajouté ici
     val nomClient: String,
     val salle: String,
     val nombreTables: Int,

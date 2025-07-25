@@ -1,5 +1,4 @@
 package com.example.cateringapp.data.dto
-
 data class Commande(
     val id: Long,
     val numeroCommande: String,
@@ -11,5 +10,5 @@ data class Commande(
     val nombreTables: Int,
     val prixParTable: Double,
     val total: Double,
-    val date: String
-)
+    val date: String,
+    val produits: List<ProduitCommande> = emptyList()  )

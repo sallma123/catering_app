@@ -28,17 +28,16 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreerCommandeScreen(typeClient: String, navController: NavController) {
+fun CreerCommandeScreen(typeClient: String, navController: NavController,commandeInitiale: CommandeDTO? = null) {
     val context = LocalContext.current
 
-    var nomClient by remember { mutableStateOf("") }
-    var salle by remember { mutableStateOf("") }
-    var nombre by remember { mutableStateOf("") }
-    var date by remember { mutableStateOf(getTodayFr()) }
+    var nomClient by remember { mutableStateOf(commandeInitiale?.nomClient ?: "") }
+    var salle by remember { mutableStateOf(commandeInitiale?.salle ?: "") }
+    var nombre by remember { mutableStateOf(commandeInitiale?.nombreTables?.toString() ?: "") }
+    var date by remember { mutableStateOf(commandeInitiale?.date?.let { convertIsoToFr(it) } ?: getTodayFr()) }
     var showDatePicker by remember { mutableStateOf(false) }
-
-    var typeCommande by remember { mutableStateOf("") }
-    var statut by remember { mutableStateOf("PAYEE") }
+    var typeCommande by remember { mutableStateOf(commandeInitiale?.typeCommande ?: "") }
+    var statut by remember { mutableStateOf(commandeInitiale?.statut ?: "PAYEE") }
 
     val typesParticulier = listOf("Mariage", "Anniversaire", "Baptême")
     val typesPro = listOf("Buffet de soutenance", "Repas coffret", "Séminaire")
@@ -227,5 +226,16 @@ fun mapTypeCommandeLabelToEnum(label: String): String {
         "Séminaire" -> "SÉMINAIRE"
         else -> label.uppercase().replace(" ", "_")
     }
+
 }
+fun convertIsoToFr(dateIso: String): String {
+    return try {
+        val iso = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val fr = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        fr.format(iso.parse(dateIso)!!)
+    } catch (e: Exception) {
+        getTodayFr()
+    }
+}
+
 

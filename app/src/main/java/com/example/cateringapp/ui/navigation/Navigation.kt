@@ -35,8 +35,20 @@ fun NavigationHost(navController: NavHostController, padding: PaddingValues) {
         // ✅ Page 1 : Création commande (avec paramètre typeClient)
         composable("creerCommande/{typeClient}") { backStackEntry ->
             val typeClient = backStackEntry.arguments?.getString("typeClient") ?: "PARTICULIER"
-            CreerCommandeScreen(typeClient = typeClient, navController = navController)
+
+            // 🆕 Nouvelle ligne : récupération de la commande existante
+            val commandeExistante = navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.get<CommandeDTO>("commandeExistante")
+
+            // 🆕 On passe cette commande à l’écran
+            CreerCommandeScreen(
+                typeClient = typeClient,
+                navController = navController,
+                commandeInitiale = commandeExistante
+            )
         }
+
 
         // ✅ Page 2 : Sélection des produits (via SavedStateHandle)
         composable("selectionProduits") {
