@@ -6,42 +6,51 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navArgument
 import com.example.cateringapp.ui.screen.commandes.*
 import com.example.cateringapp.ui.screen.paiement.PaiementScreen
 import com.example.cateringapp.ui.screen.calendrier.CalendrierScreen
 import com.example.cateringapp.ui.screen.profil.ProfilScreen
 import com.example.cateringapp.ui.screen.profil.UploadHeaderFooterScreen
+import com.example.cateringapp.viewmodel.CommandeViewModel
 import com.example.cateringcompose.ui.NavigationBarItems
 
 @Composable
-fun NavigationHost(navController: NavHostController, padding: PaddingValues) {
+fun NavigationHost(
+    navController: NavHostController,
+    padding: PaddingValues,
+    commandeViewModel: CommandeViewModel // ✅ On reçoit le ViewModel partagé ici
+) {
     NavHost(
         navController = navController,
         startDestination = NavigationBarItems.Commandes.route
     ) {
         // Onglets du menu principal
-        composable(NavigationBarItems.Commandes.route) { CommandesScreen(navController) }
-        composable(NavigationBarItems.Paiement.route) { PaiementScreen() }
+        composable(NavigationBarItems.Commandes.route) {
+            CommandesScreen(navController)
+        }
+        composable(NavigationBarItems.Paiement.route) {
+            PaiementScreen()
+        }
         composable(NavigationBarItems.Calendrier.route) {
-            CalendrierScreen(navController = navController)
+            // ✅ On passe le même ViewModel ici aussi
+            CalendrierScreen(navController = navController, viewModel = commandeViewModel)
         }
         composable(NavigationBarItems.Profil.route) {
             ProfilScreen(navController)
         }
 
-
-
-        // ✅ Page 1 : Création commande (avec paramètre typeClient)
+        // ✅ Page 1 : Création commande
         composable("creerCommande/{typeClient}") { backStackEntry ->
             val typeClient = backStackEntry.arguments?.getString("typeClient") ?: "PARTICULIER"
 
-            // 🆕 Nouvelle ligne : récupération de la commande existante
             val commandeExistante = navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.get<CommandeDTO>("commandeExistante")
 
-            // 🆕 On passe cette commande à l’écran
+            navController.previousBackStackEntry
+                ?.savedStateHandle
+                ?.remove<CommandeDTO>("commandeExistante")
+
             CreerCommandeScreen(
                 typeClient = typeClient,
                 navController = navController,
@@ -49,15 +58,18 @@ fun NavigationHost(navController: NavHostController, padding: PaddingValues) {
             )
         }
 
-
-        // ✅ Page 2 : Sélection des produits (via SavedStateHandle)
+        // ✅ Page 2 : Sélection des produits (avec ViewModel partagé)
         composable("selectionProduits") {
             val commande = navController.previousBackStackEntry
                 ?.savedStateHandle
                 ?.get<CommandeDTO>("commande")
 
             if (commande != null) {
-                SelectionProduitsScreen(commandeDTO = commande, navController = navController)
+                SelectionProduitsScreen(
+                    commandeDTO = commande,
+                    navController = navController,
+                    commandeViewModel = commandeViewModel // ✅ ViewModel partagé
+                )
             }
         }
 
@@ -70,7 +82,5 @@ fun NavigationHost(navController: NavHostController, padding: PaddingValues) {
         composable("uploadHeaderFooter") {
             UploadHeaderFooterScreen()
         }
-
-
     }
 }

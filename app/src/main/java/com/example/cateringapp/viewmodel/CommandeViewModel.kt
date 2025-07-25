@@ -25,7 +25,8 @@ class CommandeViewModel : ViewModel() {
         fetchCommandes()
     }
 
-    private fun fetchCommandes() {
+    // 🔓 Rendre la méthode publique
+    fun fetchCommandes() {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.api.getCommandes()
@@ -39,7 +40,7 @@ class CommandeViewModel : ViewModel() {
     }
 
     private fun regrouperParDate(commandes: List<Commande>) {
-        val map = commandes.groupBy { it.date } // ici le format est déjà "yyyy-MM-dd"
+        val map = commandes.groupBy { it.date }
         _commandesParDate.value = map
     }
 
@@ -51,10 +52,10 @@ class CommandeViewModel : ViewModel() {
     fun dateAvecCommandes(): Set<String> {
         return _commandesParDate.value.keys
     }
+
     fun supprimerCommande(id: Long) {
         viewModelScope.launch {
-
+            // TODO: à implémenter si tu veux plus tard
         }
     }
-
 }

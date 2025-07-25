@@ -1,6 +1,7 @@
 package com.example.cateringapp.ui.screen.commandes
 
 
+import CommandeDTO
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -131,8 +132,17 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                                     val dto = commande.toDTO()
                                     navController.currentBackStackEntry
                                         ?.savedStateHandle
-                                        ?.set("commandeExistante", dto) // ✅ corriger la clé ici
-                                    navController.navigate("creerCommande/${commande.typeClient}")
+                                        ?.set("commandeExistante", dto)
+
+                                    navController.navigate("creerCommande/${commande.typeClient}") {
+                                        // efface l'entrée après navigation
+                                        launchSingleTop = true
+                                    }
+
+                                    navController.currentBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.remove<CommandeDTO>("commandeExistante")
+
                                 }
 
                             }

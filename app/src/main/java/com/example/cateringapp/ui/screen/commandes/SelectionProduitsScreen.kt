@@ -23,6 +23,7 @@ import com.example.cateringapp.data.dto.ProduitCommande
 import com.example.cateringapp.data.dto.SectionProduit
 import com.example.cateringapp.data.remote.ApiService
 import com.example.cateringapp.data.remote.RetrofitInstance
+import com.example.cateringapp.viewmodel.CommandeViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,6 +33,7 @@ import kotlinx.coroutines.withContext
 fun SelectionProduitsScreen(
     commandeDTO: CommandeDTO,
     navController: NavController,
+    commandeViewModel: CommandeViewModel,
     apiService: ApiService = RetrofitInstance.api
 ) {
     val context = LocalContext.current
@@ -208,11 +210,17 @@ fun SelectionProduitsScreen(
                             withContext(Dispatchers.Main) {
                                 if (response.isSuccessful && response.body() != null) {
                                     val id = response.body()!!.id
+
+                                    // ✅ Rafraîchir le calendrier
+                                    commandeViewModel.fetchCommandes()
+
+                                    // ✅ Navigation
                                     navController.navigate("ficheCommande/$id")
                                 } else {
                                     Toast.makeText(context, "Erreur API", Toast.LENGTH_SHORT).show()
                                 }
                             }
+
                         }catch (e: Exception) {
                             Log.e("API_ERROR", "Erreur réseau : ${e.localizedMessage}", e)
                             withContext(Dispatchers.Main) {
