@@ -3,6 +3,8 @@ package com.example.cateringapp.ui.navigation
 import CommandeDTO
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -43,13 +45,14 @@ fun NavigationHost(
         composable("creerCommande/{typeClient}") { backStackEntry ->
             val typeClient = backStackEntry.arguments?.getString("typeClient") ?: "PARTICULIER"
 
-            val commandeExistante = navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.get<CommandeDTO>("commandeExistante")
+            // ✅ on le sort dans un remember pour ne pas perdre la valeur
+            val commandeExistante = remember(backStackEntry) {
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.get<CommandeDTO>("commandeExistante")
+            }
 
-            navController.previousBackStackEntry
-                ?.savedStateHandle
-                ?.remove<CommandeDTO>("commandeExistante")
+            // ❌ NE PAS faire .remove ici
 
             CreerCommandeScreen(
                 typeClient = typeClient,
@@ -57,6 +60,8 @@ fun NavigationHost(
                 commandeInitiale = commandeExistante
             )
         }
+
+
 
         // ✅ Page 2 : Sélection des produits (avec ViewModel partagé)
         composable("selectionProduits") {

@@ -1,6 +1,5 @@
 package com.example.cateringapp.ui.screen.commandes
 
-
 import CommandeDTO
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -23,8 +22,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.cateringapp.data.dto.Commande
 import com.example.cateringapp.data.dto.toDTO
-
-
 import com.example.cateringapp.ui.components.CommandeSwipeItem
 import com.example.cateringapp.ui.navigation.BottomNavBar
 import com.example.cateringapp.viewmodel.CommandeViewModel
@@ -135,16 +132,11 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                                         ?.set("commandeExistante", dto)
 
                                     navController.navigate("creerCommande/${commande.typeClient}") {
-                                        // efface l'entrée après navigation
                                         launchSingleTop = true
                                     }
 
-                                    navController.currentBackStackEntry
-                                        ?.savedStateHandle
-                                        ?.remove<CommandeDTO>("commandeExistante")
-
+                                    // ❌ SUPPRIMÉ : on ne fait plus le .remove ici
                                 }
-
                             }
                         )
                     }
@@ -197,7 +189,7 @@ fun CommandeCard(commande: Commande, onClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }, // 👈 Ajout du clic
+            .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = MaterialTheme.shapes.medium

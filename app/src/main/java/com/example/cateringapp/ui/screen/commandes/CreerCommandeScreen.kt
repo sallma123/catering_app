@@ -22,13 +22,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreerCommandeScreen(typeClient: String, navController: NavController,commandeInitiale: CommandeDTO? = null) {
+fun CreerCommandeScreen(typeClient: String, navController: NavController, commandeInitiale: CommandeDTO? = null) {
     val context = LocalContext.current
 
     var nomClient by remember { mutableStateOf(commandeInitiale?.nomClient ?: "") }
@@ -46,7 +45,7 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController,command
     val commandesOptions = if (typeClient.equals("Entreprise", true)) typesPro else typesParticulier
     val isNombreTable = typeClient.equals("Particulier", true) || typeClient.equals("Partenaire", true)
 
-    // ✅ Affichage du DatePicker
+
     if (showDatePicker) {
         val calendar = Calendar.getInstance()
         DatePickerDialog(
@@ -66,17 +65,18 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController,command
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF121212)) // fond noir
+            .background(Color(0xFF121212))
             .padding(16.dp)
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Création commande : ${typeClient.uppercase()}",
+            text = if (commandeInitiale != null) "Modification commande" else "Création commande : ${typeClient.uppercase()}",
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.White
         )
+
         Spacer(modifier = Modifier.height(16.dp))
 
         ExposedDropdownField("Type de commande", commandesOptions, typeCommande) {
@@ -125,39 +125,78 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController,command
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        Button(
-            onClick = {
-                if (salle.isBlank() || nombre.isBlank() || typeCommande.isBlank()) {
-                    Toast.makeText(context, "Veuillez remplir les champs obligatoires", Toast.LENGTH_SHORT).show()
-                    return@Button
+        if (commandeInitiale != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = {
+                        Toast.makeText(context, "À implémenter : appel API pour modifier", Toast.LENGTH_SHORT).show()
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                ) {
+                    Text("Modifier", fontWeight = FontWeight.SemiBold)
                 }
 
+                Button(
+                    onClick = {
+                        navController.currentBackStackEntry?.savedStateHandle?.set("commande", commandeInitiale)
+                        navController.navigate("selectionProduits")
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(50.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
+                ) {
+                    Text("Suivant", color = Color.Black, fontWeight = FontWeight.Bold)
+                }
+            }
+        } else {
+            Button(
+                onClick = {
+                    if (salle.isBlank() || nombre.isBlank() || typeCommande.isBlank()) {
+                        Toast.makeText(context, "Veuillez remplir les champs obligatoires", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
-                val isoDate = convertToIsoDate(date)
+                    val isoDate = convertToIsoDate(date)
 
-                val commande = CommandeDTO(
-                    nomClient = nomClient,
-                    salle = salle,
-                    nombreTables = nombre.toIntOrNull() ?: 0,
-                    prixParTable = 0.0,
-                    typeClient = typeClient.uppercase(),
-                    typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
-                    statut = statut,
-                    date = isoDate,
-                    produits = emptyList()
-                )
+                    val commande = CommandeDTO(
+                        nomClient = nomClient,
+                        salle = salle,
+                        nombreTables = nombre.toIntOrNull() ?: 0,
+                        prixParTable = 0.0,
+                        typeClient = typeClient.uppercase(),
+                        typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
+                        statut = statut,
+                        date = isoDate,
+                        produits = emptyList()
+                    )
 
-                navController.currentBackStackEntry?.savedStateHandle?.set("commande", commande)
-                navController.navigate("selectionProduits")
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
-        ) {
-            Text("Suivant", fontWeight = FontWeight.Bold, color = Color.Black)
+                    navController.currentBackStackEntry?.savedStateHandle?.set("commande", commande)
+                    navController.navigate("selectionProduits")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
+            ) {
+                Text("Suivant", fontWeight = FontWeight.Bold, color = Color.Black)
+            }
         }
+
+        Spacer(modifier = Modifier.height(20.dp))
+    }
+    LaunchedEffect(Unit) {
+        navController.previousBackStackEntry
+            ?.savedStateHandle
+            ?.remove<CommandeDTO>("commandeExistante") // ✅ maintenant tu peux l'effacer en toute sécurité
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExposedDropdownField(label: String, options: List<String>, selected: String, onSelected: (String) -> Unit) {
@@ -216,6 +255,7 @@ fun textFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedLabelColor = Color.White,
     unfocusedLabelColor = Color.Gray
 )
+
 fun mapTypeCommandeLabelToEnum(label: String): String {
     return when (label.trim()) {
         "Mariage" -> "MARIAGE"
@@ -226,8 +266,8 @@ fun mapTypeCommandeLabelToEnum(label: String): String {
         "Séminaire" -> "SÉMINAIRE"
         else -> label.uppercase().replace(" ", "_")
     }
-
 }
+
 fun convertIsoToFr(dateIso: String): String {
     return try {
         val iso = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -237,5 +277,4 @@ fun convertIsoToFr(dateIso: String): String {
         getTodayFr()
     }
 }
-
 
