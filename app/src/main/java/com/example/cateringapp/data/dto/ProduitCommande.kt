@@ -5,7 +5,9 @@ data class ProduitCommande(
     var nom: String,
     var categorie: String,     // Exemple : "Réception", "Dîner", etc.
     var prix: Double,
-    var selectionne: Boolean = false
+    var selectionne: Boolean = false,
+    var quantite: Int = 1
+
 ) : Serializable
 {
     // ✅ Constructeur secondaire équivalent à celui en Java
@@ -18,6 +20,7 @@ data class ProduitCommande(
     )
 
     override fun toString(): String {
-        return if (prix > 0) "$nom - $prix DH" else nom
+        return if (prix > 0) "$nom x$quantite - $prix DH" else "$nom x$quantite"
     }
+
 }

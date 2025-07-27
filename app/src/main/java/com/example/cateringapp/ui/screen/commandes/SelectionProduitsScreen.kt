@@ -1,13 +1,14 @@
 package com.example.cateringapp.ui.screen.commandes
 
 import CommandeDTO
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,7 +41,6 @@ fun SelectionProduitsScreen(
     var prixParTable by remember { mutableStateOf("") }
     var total by remember { mutableStateOf(0.0) }
 
-    // ✅ Nouvelle fonction pour initialiser avec produits sélectionnés existants
     fun initialiserSectionsAvecProduits(): List<SectionProduit> {
         val reception = mutableListOf(
             ProduitCommande("Dattes et lait", "Réception", 0.0),
@@ -53,20 +53,21 @@ fun SelectionProduitsScreen(
         val supplement = mutableListOf<ProduitCommande>()
 
         commandeDTO.produits.forEach { produit ->
-            val existing = when (produit.categorie) {
+            val target = when (produit.categorie) {
                 "Réception" -> reception
                 "Dessert" -> dessert
                 "Supplément" -> supplement
                 else -> supplement
             }
-            val index = existing.indexOfFirst { it.nom == produit.nom }
+            val index = target.indexOfFirst { it.nom == produit.nom }
             if (index >= 0) {
-                existing[index] = existing[index].copy(
+                target[index] = target[index].copy(
                     prix = produit.prix,
-                    selectionne = true
+                    selectionne = true,
+                    quantite = produit.quantite
                 )
             } else {
-                existing.add(produit.copy(selectionne = true))
+                target.add(produit.copy(selectionne = true))
             }
         }
 
@@ -79,20 +80,20 @@ fun SelectionProduitsScreen(
 
     val sections = remember { initialiserSectionsAvecProduits().toMutableStateList() }
 
-
     fun recalculerTotal() {
         val base = prixParTable.toDoubleOrNull() ?: 0.0
-        val totalSuppl = sections.flatMap { it.produits }.filter { it.selectionne }.sumOf { it.prix }
+        val totalSuppl = sections.flatMap { it.produits }
+            .filter { it.selectionne }
+            .sumOf { it.prix * (it.quantite ?: 1) }
         total = commandeDTO.nombreTables * base + totalSuppl
     }
+
     LaunchedEffect(Unit) {
         prixParTable = commandeDTO.prixParTable.takeIf { it > 0 }?.toString() ?: ""
         recalculerTotal()
     }
 
-    Scaffold(
-        containerColor = Color(0xFF121212)
-    ) { paddingValues ->
+    Scaffold(containerColor = Color(0xFF121212)) { paddingValues ->
         Column(
             modifier = Modifier
                 .padding(paddingValues)
@@ -100,18 +101,13 @@ fun SelectionProduitsScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                "Produits pour ${commandeDTO.typeCommande}",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
-            )
-
+            Text("Produits pour ${commandeDTO.typeCommande}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White)
             Spacer(modifier = Modifier.height(12.dp))
 
             sections.forEach { section ->
                 var newNom by remember { mutableStateOf("") }
                 var newPrix by remember { mutableStateOf("") }
+                var newQuantite by remember { mutableStateOf("1") }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -124,22 +120,19 @@ fun SelectionProduitsScreen(
                     Checkbox(
                         checked = section.produits.all { it.selectionne },
                         onCheckedChange = { checked ->
-                            section.produits.forEachIndexed { index, produit ->
-                                section.produits[index] = produit.copy(selectionne = checked)
+                            section.produits.indices.forEach { i ->
+                                section.produits[i] = section.produits[i].copy(selectionne = checked)
                             }
                             recalculerTotal()
                         },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = Color(0xFFFFC107),
-                            uncheckedColor = Color.White
-                        )
+                        colors = CheckboxDefaults.colors(checkedColor = Color(0xFFFFC107), uncheckedColor = Color.White)
                     )
                 }
 
                 section.produits.forEachIndexed { index, produit ->
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Checkbox(
                             checked = produit.selectionne,
@@ -147,26 +140,42 @@ fun SelectionProduitsScreen(
                                 section.produits[index] = produit.copy(selectionne = it)
                                 recalculerTotal()
                             },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = Color(0xFFFFC107),
-                                uncheckedColor = Color.White
-                            )
+                            colors = CheckboxDefaults.colors(checkedColor = Color(0xFFFFC107), uncheckedColor = Color.White)
                         )
-                        Column {
-                            Text(produit.nom, color = Color.White)
-                            if (produit.prix > 0) {
+                        Column(modifier = Modifier.padding(start = 4.dp)) {
+                            Text(produit.nom, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+                            if (section.titre == "Supplément") {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        "${(produit.quantite ?: 1)} x",
+                                        color = Color.LightGray,
+                                        fontSize = 12.sp
+                                    )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text(
+                                        "${produit.prix} DH",
+                                        color = Color.Gray,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            } else if (produit.prix > 0) {
                                 Text("${produit.prix} DH", color = Color.Gray, fontSize = 12.sp)
                             }
                         }
                     }
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     OutlinedTextField(
                         value = newNom,
                         onValueChange = { newNom = it },
                         label = { Text("Nom") },
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(0.45f),
                         colors = produitTextFieldColors()
                     )
                     if (section.titre == "Supplément") {
@@ -175,29 +184,41 @@ fun SelectionProduitsScreen(
                             value = newPrix,
                             onValueChange = { newPrix = it },
                             label = { Text("Prix") },
-                            modifier = Modifier.width(100.dp),
+                            modifier = Modifier.weight(0.25f),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            colors = produitTextFieldColors()
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        OutlinedTextField(
+                            value = newQuantite,
+                            onValueChange = { newQuantite = it },
+                            label = { Text("Qté") },
+                            modifier = Modifier.weight(0.18f),
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             colors = produitTextFieldColors()
                         )
                     }
                     Spacer(Modifier.width(8.dp))
-                    Button(
+                    IconButton(
                         onClick = {
                             val prix = if (section.titre == "Supplément") newPrix.toDoubleOrNull() ?: 0.0 else 0.0
+                            val quantite = if (section.titre == "Supplément") newQuantite.toIntOrNull() ?: 1 else 1
                             if (newNom.isNotBlank()) {
                                 section.produits.add(
-                                    ProduitCommande(nom = newNom, categorie = section.titre, prix = prix, selectionne = true)
+                                    ProduitCommande(nom = newNom, categorie = section.titre, prix = prix, quantite = quantite, selectionne = true)
                                 )
                                 newNom = ""
                                 newPrix = ""
+                                newQuantite = "1"
                                 recalculerTotal()
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
+                        modifier = Modifier.size(48.dp)
                     ) {
-                        Text("Ajouter", color = Color.Black)
+                        Icon(Icons.Default.Add, contentDescription = "Ajouter", tint = Color(0xFFFFC107))
                     }
                 }
+
 
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -230,11 +251,7 @@ fun SelectionProduitsScreen(
                     }
 
                     val isModification = commandeDTO.id != null
-
-                    val commandeFinale = commandeDTO.copy(
-                        prixParTable = prix,
-                        produits = produits
-                    )
+                    val commandeFinale = commandeDTO.copy(prixParTable = prix, produits = produits)
 
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
