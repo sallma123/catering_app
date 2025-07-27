@@ -131,6 +131,18 @@ fun CreerCommandeScreen(
         ExposedDropdownField("Statut", statuts, statut) {
             statut = it
         }
+        var objet by remember { mutableStateOf(commandeInitiale?.objet ?: "") }
+
+        if (typeClient.equals("ENTREPRISE", ignoreCase = true)) {
+            OutlinedTextField(
+                value = objet,
+                onValueChange = { objet = it },
+                label = { Text("Objet (facultatif)") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = textFieldColors()
+            )
+        }
+
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -150,7 +162,8 @@ fun CreerCommandeScreen(
                             prixParTable = commandeInitiale.prixParTable,
                             typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
                             statut = statut,
-                            date = isoDate
+                            date = isoDate,
+                            objet = objet
                         )
 
                         val id = commandeInitiale.id
@@ -222,8 +235,10 @@ fun CreerCommandeScreen(
                         typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
                         statut = statut,
                         date = isoDate,
+                        objet = objet, // ✅ très important
                         produits = emptyList()
                     )
+
 
                     navController.currentBackStackEntry?.savedStateHandle?.set("commande", commande)
                     navController.navigate("selectionProduits")

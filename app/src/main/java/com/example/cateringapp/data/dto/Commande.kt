@@ -11,4 +11,5 @@ data class Commande(
     val prixParTable: Double,
     val total: Double,
     val date: String,
+    var objet: String? = null,
     val produits: List<ProduitCommande> = emptyList()  )

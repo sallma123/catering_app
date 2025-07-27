@@ -13,6 +13,7 @@ fun Commande.toDTO(): CommandeDTO {
         typeCommande = this.typeCommande,
         statut = this.statut,
         date = this.date,
+        objet = this.objet,
         produits = this.produits // ✅ Et pas emptyList()
     )
 }
