@@ -40,24 +40,54 @@ fun SelectionProduitsScreen(
     var prixParTable by remember { mutableStateOf("") }
     var total by remember { mutableStateOf(0.0) }
 
-    val sections = remember {
-        mutableStateListOf(
-            SectionProduit("Réception", mutableStateListOf(
-                ProduitCommande("Dattes et lait", "Réception", 0.0),
-                ProduitCommande("Amuses bouche", "Réception", 0.0),
-                ProduitCommande("Petits fours salés", "Réception", 0.0)
-            )),
-            SectionProduit("Dessert", mutableStateListOf(
-                ProduitCommande("Gâteaux prestige", "Dessert", 0.0)
-            )),
-            SectionProduit("Supplément", mutableStateListOf())
+    // ✅ Nouvelle fonction pour initialiser avec produits sélectionnés existants
+    fun initialiserSectionsAvecProduits(): List<SectionProduit> {
+        val reception = mutableListOf(
+            ProduitCommande("Dattes et lait", "Réception", 0.0),
+            ProduitCommande("Amuses bouche", "Réception", 0.0),
+            ProduitCommande("Petits fours salés", "Réception", 0.0)
+        )
+        val dessert = mutableListOf(
+            ProduitCommande("Gâteaux prestige", "Dessert", 0.0)
+        )
+        val supplement = mutableListOf<ProduitCommande>()
+
+        commandeDTO.produits.forEach { produit ->
+            val existing = when (produit.categorie) {
+                "Réception" -> reception
+                "Dessert" -> dessert
+                "Supplément" -> supplement
+                else -> supplement
+            }
+            val index = existing.indexOfFirst { it.nom == produit.nom }
+            if (index >= 0) {
+                existing[index] = existing[index].copy(
+                    prix = produit.prix,
+                    selectionne = true
+                )
+            } else {
+                existing.add(produit.copy(selectionne = true))
+            }
+        }
+
+        return listOf(
+            SectionProduit("Réception", reception.toMutableStateList()),
+            SectionProduit("Dessert", dessert.toMutableStateList()),
+            SectionProduit("Supplément", supplement.toMutableStateList())
         )
     }
+
+    val sections = remember { initialiserSectionsAvecProduits().toMutableStateList() }
+
 
     fun recalculerTotal() {
         val base = prixParTable.toDoubleOrNull() ?: 0.0
         val totalSuppl = sections.flatMap { it.produits }.filter { it.selectionne }.sumOf { it.prix }
         total = commandeDTO.nombreTables * base + totalSuppl
+    }
+    LaunchedEffect(Unit) {
+        prixParTable = commandeDTO.prixParTable.takeIf { it > 0 }?.toString() ?: ""
+        recalculerTotal()
     }
 
     Scaffold(
@@ -199,6 +229,8 @@ fun SelectionProduitsScreen(
                         return@Button
                     }
 
+                    val isModification = commandeDTO.id != null
+
                     val commandeFinale = commandeDTO.copy(
                         prixParTable = prix,
                         produits = produits
@@ -206,28 +238,25 @@ fun SelectionProduitsScreen(
 
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            val response = apiService.creerCommande(commandeFinale)
+                            val response = if (isModification) {
+                                apiService.modifierCommande(commandeFinale.id!!, commandeFinale)
+                            } else {
+                                apiService.creerCommande(commandeFinale)
+                            }
                             withContext(Dispatchers.Main) {
-                                if (response.isSuccessful && response.body() != null) {
-                                    val id = response.body()!!.id
-
-                                    // ✅ Rafraîchir le calendrier
+                                if (response.isSuccessful) {
+                                    val id = if (isModification) commandeFinale.id!! else response.body()!!.id
                                     commandeViewModel.fetchCommandes()
-
-                                    // ✅ Navigation
                                     navController.navigate("ficheCommande/$id")
                                 } else {
                                     Toast.makeText(context, "Erreur API", Toast.LENGTH_SHORT).show()
                                 }
                             }
-
-                        }catch (e: Exception) {
-                            Log.e("API_ERROR", "Erreur réseau : ${e.localizedMessage}", e)
+                        } catch (e: Exception) {
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(context, "Erreur réseau : ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "Erreur réseau", Toast.LENGTH_LONG).show()
                             }
                         }
-
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -236,7 +265,7 @@ fun SelectionProduitsScreen(
                 Text("Valider", fontWeight = FontWeight.Bold, color = Color.Black)
             }
 
-            Spacer(modifier = Modifier.height(100.dp)) // Pour ne pas être collé à la barre de navigation
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 }

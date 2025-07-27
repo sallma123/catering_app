@@ -2,6 +2,7 @@ package com.example.cateringapp.ui.screen.commandes
 
 import CommandeDTO
 import android.app.DatePickerDialog
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,12 +23,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreerCommandeScreen(typeClient: String, navController: NavController, commandeInitiale: CommandeDTO? = null) {
+fun CreerCommandeScreen(typeClient: String, navController: NavController, commandeInitiale: CommandeDTO? = null,commandeViewModel: CommandeViewModel) {
     val context = LocalContext.current
 
     var nomClient by remember { mutableStateOf(commandeInitiale?.nomClient ?: "") }
@@ -44,6 +46,7 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController, comman
 
     val commandesOptions = if (typeClient.equals("Entreprise", true)) typesPro else typesParticulier
     val isNombreTable = typeClient.equals("Particulier", true) || typeClient.equals("Partenaire", true)
+
 
 
     if (showDatePicker) {
@@ -132,7 +135,42 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController, comman
             ) {
                 Button(
                     onClick = {
-                        Toast.makeText(context, "À implémenter : appel API pour modifier", Toast.LENGTH_SHORT).show()
+                        val isoDate = convertToIsoDate(date)
+
+                        val commandeModifiee = commandeInitiale.copy(
+                            nomClient = nomClient,
+                            salle = salle,
+                            nombreTables = nombre.toIntOrNull() ?: 0,
+                            prixParTable = commandeInitiale.prixParTable, // ✅ conserver le prix d'origine
+                            typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
+                            statut = statut,
+                            date = isoDate
+                        )
+
+                        val id = commandeInitiale.id
+                        if (id == null || id == 0L) {
+                            Toast.makeText(context, "ID manquant : impossible de modifier", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+
+                        commandeViewModel.modifierCommande(
+                            id = id,
+                            commandeDTO = commandeModifiee,
+                            onSuccess = {
+                                Log.d("CreerCommandeScreen", "Commande modifiée avec succès, id=$id")
+                                Toast.makeText(context, "Commande modifiée avec succès", Toast.LENGTH_SHORT).show()
+
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("refreshCommandes", true)
+
+                                navController.popBackStack() // retour à la liste des commandes
+                            },
+                            onError = {
+                                Log.e("CreerCommandeScreen", "Erreur lors de la modification de la commande id=$id")
+                                Toast.makeText(context, "Erreur lors de la modification", Toast.LENGTH_SHORT).show()
+                            }
+                        )
                     },
                     modifier = Modifier
                         .weight(1f)
@@ -155,7 +193,8 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController, comman
                     Text("Suivant", color = Color.Black, fontWeight = FontWeight.Bold)
                 }
             }
-        } else {
+        }
+else {
             Button(
                 onClick = {
                     if (salle.isBlank() || nombre.isBlank() || typeCommande.isBlank()) {

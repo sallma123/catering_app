@@ -1,5 +1,7 @@
 package com.example.cateringapp.viewmodel
 
+import CommandeDTO
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cateringapp.data.dto.Commande
@@ -39,6 +41,7 @@ class CommandeViewModel : ViewModel() {
         }
     }
 
+
     private fun regrouperParDate(commandes: List<Commande>) {
         val map = commandes.groupBy { it.date }
         _commandesParDate.value = map
@@ -58,4 +61,27 @@ class CommandeViewModel : ViewModel() {
             // TODO: à implémenter si tu veux plus tard
         }
     }
+
+
+    fun modifierCommande(
+        id: Long,
+        commandeDTO: CommandeDTO,
+        onSuccess: () -> Unit,
+        onError: () -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                RetrofitInstance.api.modifierCommande(id, commandeDTO)
+                fetchCommandes() // actualise la liste locale
+                onSuccess()
+            } catch (e: Exception) {
+                onError()
+            }
+        }
+    }
+
+
+
+
+
 }

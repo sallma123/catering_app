@@ -37,17 +37,25 @@ interface ApiService {
         @Part footer: MultipartBody.Part
     ): Response<Void>
 
-    // ✅ Upload uniquement l'entête
+    // Upload uniquement l'entête
     @Multipart
     @POST("api/profile/uploadHeader")
     suspend fun uploadHeader(
         @Part file: MultipartBody.Part
     ): Response<Void>
 
-    // ✅ Upload uniquement le pied de page
+    // Upload uniquement le pied de page
     @Multipart
     @POST("api/profile/uploadFooter")
     suspend fun uploadFooter(
         @Part file: MultipartBody.Part
     ): Response<Void>
+    // Modifier une commande
+    @PUT("api/commandes/{id}")
+    suspend fun modifierCommande(
+        @Path("id") id: Long,
+        @Body commandeDTO: CommandeDTO
+    ): Response<Commande>
+
+
 }

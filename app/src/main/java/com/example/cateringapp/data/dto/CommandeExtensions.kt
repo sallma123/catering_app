@@ -4,6 +4,7 @@ import CommandeDTO
 
 fun Commande.toDTO(): CommandeDTO {
     return CommandeDTO(
+        id = this.id, // ✅ Très important
         nomClient = this.nomClient,
         salle = this.salle,
         nombreTables = this.nombreTables,
@@ -12,6 +13,7 @@ fun Commande.toDTO(): CommandeDTO {
         typeCommande = this.typeCommande,
         statut = this.statut,
         date = this.date,
-        produits = emptyList() // tu mettras la vraie liste si elle existe dans Commande
+        produits = this.produits // ✅ Et pas emptyList()
     )
 }
+

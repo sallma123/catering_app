@@ -57,7 +57,8 @@ fun NavigationHost(
             CreerCommandeScreen(
                 typeClient = typeClient,
                 navController = navController,
-                commandeInitiale = commandeExistante
+                commandeInitiale = commandeExistante,
+                commandeViewModel = commandeViewModel
             )
         }
 

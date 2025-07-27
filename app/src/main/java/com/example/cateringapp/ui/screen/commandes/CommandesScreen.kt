@@ -38,6 +38,15 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
     val sdfInput = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val sdfMois = SimpleDateFormat("MMMM", Locale.FRENCH)
     val sdfSort = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val shouldRefresh = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<Boolean>("refreshCommandes") == true
+    LaunchedEffect(shouldRefresh) {
+        if (shouldRefresh == true) {
+            viewModel.fetchCommandes()
+            navController.currentBackStackEntry?.savedStateHandle?.remove<Boolean>("refreshCommandes")
+        }
+    }
 
     val commandesTriees = commandes
         .filter {
@@ -127,6 +136,9 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                             content = {
                                 CommandeCard(commande) {
                                     val dto = commande.toDTO()
+                                    android.util.Log.d("CommandesScreen", "Commande sélectionnée : id=${commande.id}, typeClient=${commande.typeClient}")
+                                    android.util.Log.d("CommandesScreen", "CommandeDTO généré : id=${dto.id}, nomClient=${dto.nomClient}, produits=${dto.produits.size}")
+
                                     navController.currentBackStackEntry
                                         ?.savedStateHandle
                                         ?.set("commandeExistante", dto)
@@ -134,6 +146,7 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                                     navController.navigate("creerCommande/${commande.typeClient}") {
                                         launchSingleTop = true
                                     }
+
 
                                     // ❌ SUPPRIMÉ : on ne fait plus le .remove ici
                                 }
