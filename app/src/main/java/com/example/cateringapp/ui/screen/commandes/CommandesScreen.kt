@@ -222,7 +222,7 @@ fun CommandeCard(commande: Commande, onClick: () -> Unit = {}) {
                     fontSize = 16.sp
                 )
                 Text(
-                    text = "${commande.nomClient} | ${commande.salle} | ${commande.nombreTables} tables",
+                    text = "${commande.nomClient} | ${commande.salle} | ${if (commande.typeClient.equals("ENTREPRISE", true)) "${commande.nombreTables} personnes" else "${commande.nombreTables} tables"}",
                     fontSize = 14.sp
                 )
             }
