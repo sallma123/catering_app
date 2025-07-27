@@ -29,7 +29,12 @@ import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CreerCommandeScreen(typeClient: String, navController: NavController, commandeInitiale: CommandeDTO? = null,commandeViewModel: CommandeViewModel) {
+fun CreerCommandeScreen(
+    typeClient: String,
+    navController: NavController,
+    commandeInitiale: CommandeDTO? = null,
+    commandeViewModel: CommandeViewModel
+) {
     val context = LocalContext.current
 
     var nomClient by remember { mutableStateOf(commandeInitiale?.nomClient ?: "") }
@@ -40,14 +45,15 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController, comman
     var typeCommande by remember { mutableStateOf(commandeInitiale?.typeCommande ?: "") }
     var statut by remember { mutableStateOf(commandeInitiale?.statut ?: "PAYEE") }
 
+    // ✅ MODIF : Variable locale pour stocker la commande courante (modifiée ou non)
+    var commandeCourante by remember { mutableStateOf(commandeInitiale) }
+
     val typesParticulier = listOf("Mariage", "Anniversaire", "Baptême")
     val typesPro = listOf("Buffet de soutenance", "Repas coffret", "Séminaire")
     val statuts = listOf("PAYEE", "NON_PAYEE")
 
     val commandesOptions = if (typeClient.equals("Entreprise", true)) typesPro else typesParticulier
     val isNombreTable = typeClient.equals("Particulier", true) || typeClient.equals("Partenaire", true)
-
-
 
     if (showDatePicker) {
         val calendar = Calendar.getInstance()
@@ -141,7 +147,7 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController, comman
                             nomClient = nomClient,
                             salle = salle,
                             nombreTables = nombre.toIntOrNull() ?: 0,
-                            prixParTable = commandeInitiale.prixParTable, // ✅ conserver le prix d'origine
+                            prixParTable = commandeInitiale.prixParTable,
                             typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
                             statut = statut,
                             date = isoDate
@@ -160,11 +166,12 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController, comman
                                 Log.d("CreerCommandeScreen", "Commande modifiée avec succès, id=$id")
                                 Toast.makeText(context, "Commande modifiée avec succès", Toast.LENGTH_SHORT).show()
 
+                                // ✅ Mise à jour de la commande en mémoire
+                                commandeCourante = commandeModifiee.copy(id = id)
+
                                 navController.previousBackStackEntry
                                     ?.savedStateHandle
                                     ?.set("refreshCommandes", true)
-
-                                navController.popBackStack() // retour à la liste des commandes
                             },
                             onError = {
                                 Log.e("CreerCommandeScreen", "Erreur lors de la modification de la commande id=$id")
@@ -182,8 +189,11 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController, comman
 
                 Button(
                     onClick = {
-                        navController.currentBackStackEntry?.savedStateHandle?.set("commande", commandeInitiale)
-                        navController.navigate("selectionProduits")
+                        // ✅ Utiliser la commandeCourante (modifiée ou non)
+                        commandeCourante?.let {
+                            navController.currentBackStackEntry?.savedStateHandle?.set("commande", it)
+                            navController.navigate("selectionProduits")
+                        }
                     },
                     modifier = Modifier
                         .weight(1f)
@@ -193,8 +203,7 @@ fun CreerCommandeScreen(typeClient: String, navController: NavController, comman
                     Text("Suivant", color = Color.Black, fontWeight = FontWeight.Bold)
                 }
             }
-        }
-else {
+        } else {
             Button(
                 onClick = {
                     if (salle.isBlank() || nombre.isBlank() || typeCommande.isBlank()) {
@@ -230,12 +239,14 @@ else {
 
         Spacer(modifier = Modifier.height(20.dp))
     }
+
     LaunchedEffect(Unit) {
         navController.previousBackStackEntry
             ?.savedStateHandle
-            ?.remove<CommandeDTO>("commandeExistante") // ✅ maintenant tu peux l'effacer en toute sécurité
+            ?.remove<CommandeDTO>("commandeExistante")
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExposedDropdownField(label: String, options: List<String>, selected: String, onSelected: (String) -> Unit) {
