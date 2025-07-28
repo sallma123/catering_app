@@ -45,17 +45,47 @@ fun SelectionProduitsScreen(
         val reception = mutableListOf(
             ProduitCommande("Dattes et lait", "Réception", 0.0),
             ProduitCommande("Amuses bouche", "Réception", 0.0),
-            ProduitCommande("Petits fours salés", "Réception", 0.0)
+            ProduitCommande("Bébé macaron et Mini cookies", "Réception", 0.0),
+            ProduitCommande("Petits fours salés (2 types)", "Réception", 0.0),
+            ProduitCommande("Amandes salés", "Réception", 0.0)
+        )
+        val cocktail = mutableListOf(
+            ProduitCommande("Jus parfums nature (fraise, citron gingembre, avocat à orange)", "Cocktail d’accueil servi à table", 0.0),
+            ProduitCommande("Gâteaux soirée", "Cocktail d’accueil servi à table", 0.0),
+            ProduitCommande("Gâteaux prestige", "Cocktail d’accueil servi à table", 0.0)
+        )
+        val entremets = mutableListOf(
+            ProduitCommande("Nems viande hachée", "Entremets", 0.0),
+            ProduitCommande("Briouates poulet épinard", "Entremets", 0.0),
+            ProduitCommande("Cake salé", "Entremets", 0.0)
+        )
+        val festival = mutableListOf(
+            ProduitCommande("Thé", "Festival de gâteaux beldi", 0.0),
+            ProduitCommande("4 Gâteaux amandes : k3ab, Kehk, ghraiba aux noix, la lune à l’orange", "Festival de gâteaux beldi", 0.0)
+        )
+        val diner = mutableListOf(
+            ProduitCommande("Poulet dermira", "Diner", 0.0),
+            ProduitCommande("Tajine de veau contemporain", "Diner", 0.0)
         )
         val dessert = mutableListOf(
-            ProduitCommande("Gâteaux prestige", "Dessert", 0.0)
+            ProduitCommande("Corbeille de fruits", "Côté dessert", 0.0)
         )
+        val apresdiner = mutableListOf(
+            ProduitCommande("Café", "Après Diner", 0.0),
+            ProduitCommande("Gâteaux au miel : briwat, mhencha", "Après Diner", 0.0)
+        )
+
         val supplement = mutableListOf<ProduitCommande>()
 
         commandeDTO.produits.forEach { produit ->
             val target = when (produit.categorie) {
                 "Réception" -> reception
-                "Dessert" -> dessert
+                "Cocktail d’accueil servi à table" -> cocktail
+                "Entremets" -> entremets
+                "Festival de gâteaux beldi" -> festival
+                "Diner" -> diner
+                "Côté dessert" -> dessert
+                "Après Diner" -> apresdiner
                 "Supplément" -> supplement
                 else -> supplement
             }
@@ -73,7 +103,12 @@ fun SelectionProduitsScreen(
 
         return listOf(
             SectionProduit("Réception", reception.toMutableStateList()),
-            SectionProduit("Dessert", dessert.toMutableStateList()),
+            SectionProduit("Cocktail d’accueil servi à table", cocktail.toMutableStateList()),
+            SectionProduit("Entremets", entremets.toMutableStateList()),
+            SectionProduit("Festival de gâteaux beldi", festival.toMutableStateList()),
+            SectionProduit("Diner", diner.toMutableStateList()),
+            SectionProduit("Côté dessert", dessert.toMutableStateList()),
+            SectionProduit("Après Diner", apresdiner.toMutableStateList()),
             SectionProduit("Supplément", supplement.toMutableStateList())
         )
     }
