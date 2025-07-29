@@ -1,6 +1,7 @@
 package com.example.cateringapp.data.remote
 
 import CommandeDTO
+import com.example.cateringapp.data.dto.Avance
 import com.example.cateringapp.data.dto.Commande
 import com.example.cateringapp.data.dto.LoginRequest
 import com.example.cateringapp.data.dto.LoginResponse
@@ -56,6 +57,11 @@ interface ApiService {
         @Path("id") id: Long,
         @Body commandeDTO: CommandeDTO
     ): Response<Commande>
+    @POST("commandes/{id}/avances")
+    suspend fun ajouterAvance(@Path("id") idCommande: Long, @Body avance: Avance)
+
+    @GET("commandes/{id}/avances")
+    suspend fun getAvancesByCommande(@Path("id") idCommande: Long): List<Avance>
 
 
 }

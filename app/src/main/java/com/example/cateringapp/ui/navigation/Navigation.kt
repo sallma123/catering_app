@@ -3,14 +3,14 @@ package com.example.cateringapp.ui.navigation
 import CommandeDTO
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.cateringapp.ui.screen.commandes.*
-import com.example.cateringapp.ui.screen.paiement.PaiementScreen
+import com.example.cateringapp.ui.screen.paiements.PaiementsScreen
 import com.example.cateringapp.ui.screen.calendrier.CalendrierScreen
+import com.example.cateringapp.ui.screen.paiements.AvancesCommandeScreen
 import com.example.cateringapp.ui.screen.profil.ProfilScreen
 import com.example.cateringapp.ui.screen.profil.UploadHeaderFooterScreen
 import com.example.cateringapp.viewmodel.CommandeViewModel
@@ -31,7 +31,7 @@ fun NavigationHost(
             CommandesScreen(navController)
         }
         composable(NavigationBarItems.Paiement.route) {
-            PaiementScreen()
+            PaiementsScreen(navController)
         }
         composable(NavigationBarItems.Calendrier.route) {
             // ✅ On passe le même ViewModel ici aussi
@@ -88,5 +88,13 @@ fun NavigationHost(
         composable("uploadHeaderFooter") {
             UploadHeaderFooterScreen()
         }
+        composable("avancesCommande/{commandeId}") { backStackEntry ->
+            val commandeId = backStackEntry.arguments?.getString("commandeId")?.toLongOrNull()
+            if (commandeId != null) {
+                AvancesCommandeScreen(navController = navController, commandeId = commandeId)
+            }
+        }
+
+
     }
 }

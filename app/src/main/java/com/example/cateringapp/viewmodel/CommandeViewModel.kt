@@ -4,12 +4,12 @@ import CommandeDTO
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.cateringapp.data.dto.Avance
 import com.example.cateringapp.data.dto.Commande
 import com.example.cateringapp.data.remote.RetrofitInstance
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,7 +27,6 @@ class CommandeViewModel : ViewModel() {
         fetchCommandes()
     }
 
-    // 🔓 Rendre la méthode publique
     fun fetchCommandes() {
         viewModelScope.launch {
             try {
@@ -37,10 +36,10 @@ class CommandeViewModel : ViewModel() {
             } catch (e: Exception) {
                 _commandes.value = emptyList()
                 _commandesParDate.value = emptyMap()
+                Log.e("CommandeViewModel", "Erreur fetchCommandes: ${e.message}")
             }
         }
     }
-
 
     private fun regrouperParDate(commandes: List<Commande>) {
         val map = commandes.groupBy { it.date }
@@ -58,10 +57,9 @@ class CommandeViewModel : ViewModel() {
 
     fun supprimerCommande(id: Long) {
         viewModelScope.launch {
-            // TODO: à implémenter si tu veux plus tard
+            // TODO : si tu ajoutes suppression plus tard
         }
     }
-
 
     fun modifierCommande(
         id: Long,
@@ -72,7 +70,7 @@ class CommandeViewModel : ViewModel() {
         viewModelScope.launch {
             try {
                 RetrofitInstance.api.modifierCommande(id, commandeDTO)
-                fetchCommandes() // actualise la liste locale
+                fetchCommandes()
                 onSuccess()
             } catch (e: Exception) {
                 onError()
@@ -80,8 +78,30 @@ class CommandeViewModel : ViewModel() {
         }
     }
 
+    // ✅ Ajouter une avance à une commande
+    fun ajouterAvance(idCommande: Long, avance: Avance) {
+        viewModelScope.launch {
+            try {
+                RetrofitInstance.api.ajouterAvance(idCommande, avance)
+                fetchCommandes()
+            } catch (e: Exception) {
+                Log.e("CommandeViewModel", "Erreur ajout avance: ${e.message}")
+            }
+        }
+    }
 
-
-
+    // ✅ Récupérer les avances d'une commande
+    fun getAvancesForCommande(idCommande: Long): Flow<List<Avance>> = flow {
+        try {
+            val result = RetrofitInstance.api.getAvancesByCommande(idCommande)
+            emit(result)
+        } catch (e: Exception) {
+            Log.e("CommandeViewModel", "Erreur getAvances: ${e.message}")
+            emit(emptyList())
+        }
+    }
+    fun getCommandeById(id: Long): Commande? {
+        return _commandes.value.find { it.id == id }
+    }
 
 }
