@@ -13,7 +13,7 @@ data class Commande(
     val date: String,
     var objet: String? = null,
     val produits: List<ProduitCommande> = emptyList(),
-    val avances: List<Avance> = emptyList())
+    var avances: List<Avance> = emptyList())
 {
     val resteAPayer: Double
         get() = total - (avances?.sumOf { it.montant } ?: 0.0)

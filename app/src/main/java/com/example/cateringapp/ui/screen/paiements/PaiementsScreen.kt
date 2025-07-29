@@ -109,12 +109,22 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
                         Text(mois, color = Color.White, fontWeight = FontWeight.Bold)
                     }
                     items(list) { commande ->
-                        PaiementCard(commande) {
-                            commande.id?.let { id ->
-                                navController.navigate("avancesCommande/$id")
+                        val avances by viewModel.getAvancesForCommande(commande.id ?: 0L)
+                            .collectAsState(initial = emptyList())
+
+                        val reste = commande.total - avances.sumOf { it.montant }
+
+                        PaiementCard(
+                            commande = commande,
+                            reste = reste,
+                            onDollarClick = {
+                                commande.id?.let { id ->
+                                    navController.navigate("avancesCommande/$id")
+                                }
                             }
-                        }
+                        )
                     }
+
                 }
             }
 
@@ -145,7 +155,8 @@ fun StatBox(label: String, value: Double) {
 }
 
 @Composable
-fun PaiementCard(commande: Commande, onDollarClick: () -> Unit) {
+fun PaiementCard(commande: Commande, reste: Double, onDollarClick: () -> Unit)
+ {
     val dateFormatted = try {
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(commande.date)
         SimpleDateFormat("dd/MM", Locale.getDefault()).format(date!!)
@@ -174,7 +185,7 @@ fun PaiementCard(commande: Commande, onDollarClick: () -> Unit) {
             }
             Spacer(Modifier.height(4.dp))
             Text("${commande.nomClient} | ${commande.salle} | ${commande.nombreTables} tables | $dateFormatted")
-            Text("Reste à payer : ${commande.resteAPayer} Dh", fontWeight = FontWeight.SemiBold)
+            Text("Reste à payer : ${"%.2f".format(reste)} Dh", fontWeight = FontWeight.SemiBold)
         }
     }
 }

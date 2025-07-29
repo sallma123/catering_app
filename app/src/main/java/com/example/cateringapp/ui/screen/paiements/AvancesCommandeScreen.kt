@@ -28,6 +28,7 @@ import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.flow.map
 
 
 @Composable
@@ -37,7 +38,12 @@ fun AvancesCommandeScreen(
     viewModel: CommandeViewModel = viewModel()
 ) {
     val context = LocalContext.current
-    val commande = viewModel.getCommandeById(commandeId) ?: return
+    val commandeState = viewModel.commandes
+        .map { it.find { it.id == commandeId } }
+        .collectAsState(initial = null)
+
+    val commande = commandeState.value ?: return
+
 
     var montant by remember { mutableStateOf("") }
     var date by remember { mutableStateOf(getTodayFr()) }
@@ -45,7 +51,8 @@ fun AvancesCommandeScreen(
     val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     val avances = viewModel.getAvancesForCommande(commande.id ?: 0L).collectAsState(initial = emptyList())
 
-    val reste = commande.resteAPayer
+    val reste = commande.total - avances.value.sumOf { it.montant }
+
 
     Column(
         modifier = Modifier
@@ -62,6 +69,7 @@ fun AvancesCommandeScreen(
             Text("Total: ${commande.total} Dh", color = Color.White)
             Text("Payé: ${commande.total - reste} Dh", color = Color.White)
             Text("Reste: $reste Dh", color = Color.White)
+
         }
 
         Spacer(Modifier.height(16.dp))
