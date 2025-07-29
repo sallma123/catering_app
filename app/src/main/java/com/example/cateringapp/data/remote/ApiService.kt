@@ -57,11 +57,17 @@ interface ApiService {
         @Path("id") id: Long,
         @Body commandeDTO: CommandeDTO
     ): Response<Commande>
-    @POST("commandes/{id}/avances")
-    suspend fun ajouterAvance(@Path("id") idCommande: Long, @Body avance: Avance)
+    @POST("api/commandes/{id}/avances")
+    suspend fun ajouterAvance(
+        @Path("id") idCommande: Long,
+        @Body avance: Avance
+    ): Response<Void>
 
-    @GET("commandes/{id}/avances")
-    suspend fun getAvancesByCommande(@Path("id") idCommande: Long): List<Avance>
+    @GET("api/commandes/{id}/avances")
+    suspend fun getAvancesByCommande(
+        @Path("id") idCommande: Long
+    ): List<Avance>
+
 
 
 }

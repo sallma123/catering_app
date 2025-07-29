@@ -82,13 +82,19 @@ class CommandeViewModel : ViewModel() {
     fun ajouterAvance(idCommande: Long, avance: Avance) {
         viewModelScope.launch {
             try {
-                RetrofitInstance.api.ajouterAvance(idCommande, avance)
-                fetchCommandes()
+                val response = RetrofitInstance.api.ajouterAvance(idCommande, avance)
+                if (response.isSuccessful) {
+                    Log.d("Avance", "✅ Avance bien ajoutée")
+                    fetchCommandes() // Met à jour les commandes (avec les nouvelles avances)
+                } else {
+                    Log.e("Avance", "❌ Échec de l'ajout : ${response.code()}")
+                }
             } catch (e: Exception) {
-                Log.e("CommandeViewModel", "Erreur ajout avance: ${e.message}")
+                Log.e("Avance", "❌ Exception ajout avance: ${e.message}")
             }
         }
     }
+
 
     // ✅ Récupérer les avances d'une commande
     fun getAvancesForCommande(idCommande: Long): Flow<List<Avance>> = flow {
