@@ -34,6 +34,8 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
 
     var query by remember { mutableStateOf("") }
     var filtre by remember { mutableStateOf("TOUS") }
+    var dateDebut by remember { mutableStateOf<Date?>(null) }
+    var dateFin by remember { mutableStateOf<Date?>(null) }
 
     val sdfInput = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val sdfMois = SimpleDateFormat("MMMM", Locale.FRENCH)
@@ -46,8 +48,14 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
         val dateOK = when (filtre) {
             "PASSEE" -> date != null && date.before(today)
             "FUTURE" -> date != null && date.after(today)
+            "ENTRE DEUX DATES" -> {
+                val debutOk = dateDebut?.let { date != null && !date.before(it) } ?: false
+                val finOk = dateFin?.let { date != null && !date.after(it) } ?: false
+                debutOk && finOk
+            }
             else -> true
         }
+
         nomMatch && dateOK
     }
 
@@ -104,6 +112,14 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
                 Spacer(Modifier.width(8.dp))
                 FilterDropdown(filtre) { filtre = it }
             }
+            if (filtre == "ENTRE DEUX DATES") {
+                Spacer(Modifier.height(8.dp))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DateSelector("Date début", dateDebut) { dateDebut = it }
+                    DateSelector("Date fin", dateFin) { dateFin = it }
+                }
+            }
+
 
             Spacer(Modifier.height(12.dp))
             StatsPaiementRow(totalCA, totalPaye, totalReste)
@@ -202,7 +218,7 @@ fun PaiementCard(commande: Commande, reste: Double, onDollarClick: () -> Unit)
 @Composable
 fun FilterDropdown(selected: String, onSelected: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val options = listOf("TOUS", "FUTURE", "PASSEE")
+    val options = listOf("TOUS", "FUTURE", "PASSEE", "ENTRE DEUX DATES")
 
     Box {
         OutlinedButton(onClick = { expanded = true }) {
@@ -232,3 +248,26 @@ fun textFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedLabelColor = Color.White,
     unfocusedLabelColor = Color.Gray
 )
+@Composable
+fun DateSelector(label: String, selectedDate: Date?, onDateSelected: (Date) -> Unit) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+    val datePickerDialog = remember {
+        android.app.DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                calendar.set(year, month, dayOfMonth)
+                onDateSelected(calendar.time)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+    }
+
+    OutlinedButton(onClick = { datePickerDialog.show() }) {
+        Text(selectedDate?.let { sdf.format(it) } ?: label)
+    }
+}
