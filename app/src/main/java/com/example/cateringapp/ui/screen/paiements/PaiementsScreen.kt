@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.cateringapp.data.dto.Avance
 import com.example.cateringapp.data.dto.Commande
 import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
@@ -39,7 +40,6 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
     val sdfSort = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val today = remember { Date() }
 
-    // 👉 Filtrage + recherche
     val commandesFiltrees = commandes.filter {
         val nomMatch = it.nomClient.contains(query, ignoreCase = true) || it.salle.contains(query, ignoreCase = true)
         val date = try { sdfInput.parse(it.date) } catch (e: Exception) { null }
@@ -51,9 +51,26 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
         nomMatch && dateOK
     }
 
+    // 🔄 Calcul dynamique des avances
+    val avancesMap = remember { mutableStateMapOf<Long, List<Avance>>() }
+
+    LaunchedEffect(commandesFiltrees) {
+        commandesFiltrees.forEach { commande ->
+            val id = commande.id
+            if (id != null) {
+                viewModel.getAvancesForCommande(id).collect { avances ->
+                    avancesMap[id] = avances
+                }
+            }
+        }
+    }
+
     val totalCA = commandesFiltrees.sumOf { it.total }
-    val totalPaye = commandesFiltrees.sumOf { it.total - it.resteAPayer }
-    val totalReste = commandesFiltrees.sumOf { it.resteAPayer }
+    val totalPaye = commandesFiltrees.sumOf { commande ->
+        val avances = avancesMap[commande.id] ?: emptyList()
+        avances.sumOf { it.montant }
+    }
+    val totalReste = totalCA - totalPaye
 
     val grouped = commandesFiltrees
         .sortedBy { try { sdfSort.parse(it.date) } catch (e: Exception) { null } }
@@ -75,7 +92,6 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
                 .padding(8.dp)
                 .fillMaxSize()
         ) {
-            // 🔍 Recherche + filtre
             Row(Modifier.fillMaxWidth()) {
                 OutlinedTextField(
                     value = query,
@@ -90,28 +106,22 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
             }
 
             Spacer(Modifier.height(12.dp))
-
-            // 📊 Statistiques globales
             StatsPaiementRow(totalCA, totalPaye, totalReste)
-
             Spacer(Modifier.height(12.dp))
 
-            // 📋 Liste groupée
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
-                contentPadding = PaddingValues(bottom = 100.dp) // pour éviter que la dernière carte soit cachée sous la navigation
+                contentPadding = PaddingValues(bottom = 100.dp)
             ) {
                 grouped.forEach { (mois, list) ->
                     item {
                         Text(mois, color = Color.White, fontWeight = FontWeight.Bold)
                     }
                     items(list) { commande ->
-                        val avances by viewModel.getAvancesForCommande(commande.id ?: 0L)
-                            .collectAsState(initial = emptyList())
-
+                        val avances = avancesMap[commande.id] ?: emptyList()
                         val reste = commande.total - avances.sumOf { it.montant }
 
                         PaiementCard(
@@ -124,13 +134,12 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
                             }
                         )
                     }
-
                 }
             }
-
         }
     }
 }
+
 
 @Composable
 fun StatsPaiementRow(total: Double, paye: Double, reste: Double) {
