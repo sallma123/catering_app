@@ -130,6 +130,20 @@ class CommandeViewModel : ViewModel() {
             }
         }
     }
+    fun verifierDateCommande(
+        dateIso: String,
+        onResult: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val existe = RetrofitInstance.api.verifierDate(dateIso)
+                onResult(existe)
+            } catch (e: Exception) {
+                Log.e("CommandeViewModel", "Erreur vérification date : ${e.message}")
+                onResult(false)
+            }
+        }
+    }
 
 
 }

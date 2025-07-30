@@ -67,6 +67,8 @@ interface ApiService {
     suspend fun getAvancesByCommande(
         @Path("id") idCommande: Long
     ): List<Avance>
+    @GET("api/commandes/verifier-date")
+    suspend fun verifierDate(@Query("date") date: String): Boolean
 
 
 

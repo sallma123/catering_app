@@ -46,6 +46,7 @@ fun CreerCommandeScreen(
     var statut by remember { mutableStateOf(commandeInitiale?.statut ?: "PAYEE") }
     var objet by remember { mutableStateOf(commandeInitiale?.objet ?: "") }
     var commentaire by remember { mutableStateOf(commandeInitiale?.commentaire ?: "") }
+    var showDialogConfirmation by remember { mutableStateOf(false) }
 
     // ✅ MODIF : Variable locale pour stocker la commande courante (modifiée ou non)
     var commandeCourante by remember { mutableStateOf(commandeInitiale) }
@@ -53,6 +54,24 @@ fun CreerCommandeScreen(
     val typesParticulier = listOf("Mariage", "Anniversaire", "Baptême")
     val typesPro = listOf("Buffet de soutenance", "Repas coffret", "Séminaire")
     val statuts = listOf("PAYEE", "NON_PAYEE")
+    fun continuerCreationCommande(dateIso: String) {
+        val commande = CommandeDTO(
+            nomClient = nomClient,
+            salle = salle,
+            nombreTables = nombre.toIntOrNull() ?: 0,
+            prixParTable = 0.0,
+            typeClient = typeClient.uppercase(),
+            typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
+            statut = statut,
+            date = dateIso,
+            objet = objet,
+            commentaire = commentaire,
+            produits = emptyList()
+        )
+
+        navController.currentBackStackEntry?.savedStateHandle?.set("commande", commande)
+        navController.navigate("selectionProduits")
+    }
 
     val commandesOptions = if (typeClient.equals("Entreprise", true)) typesPro else typesParticulier
     val isNombreTable = typeClient.equals("Particulier", true) || typeClient.equals("Partenaire", true)
@@ -254,23 +273,14 @@ fun CreerCommandeScreen(
 
                     val isoDate = convertToIsoDate(date)
 
-                    val commande = CommandeDTO(
-                        nomClient = nomClient,
-                        salle = salle,
-                        nombreTables = nombre.toIntOrNull() ?: 0,
-                        prixParTable = 0.0,
-                        typeClient = typeClient.uppercase(),
-                        typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
-                        statut = statut,
-                        date = isoDate,
-                        objet = objet,
-                        commentaire = commentaire,
-                        produits = emptyList()
-                    )
-
-
-                    navController.currentBackStackEntry?.savedStateHandle?.set("commande", commande)
-                    navController.navigate("selectionProduits")
+                    commandeViewModel.verifierDateCommande(isoDate) { existe ->
+                        if (existe) {
+                            // ✅ Une commande existe déjà à cette date
+                            showDialogConfirmation = true
+                        } else {
+                            continuerCreationCommande(isoDate)
+                        }
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -282,6 +292,28 @@ fun CreerCommandeScreen(
         }
 
         Spacer(modifier = Modifier.height(20.dp))
+    }
+    if (showDialogConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDialogConfirmation = false },
+            title = { Text("Attention") },
+            text = { Text("Une commande existe déjà pour cette date. Voulez-vous continuer ?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDialogConfirmation = false
+                    continuerCreationCommande(convertToIsoDate(date))
+                }) {
+                    Text("Continuer")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDialogConfirmation = false
+                }) {
+                    Text("Annuler")
+                }
+            }
+        )
     }
 
     LaunchedEffect(Unit) {
@@ -323,6 +355,7 @@ fun ExposedDropdownField(label: String, options: List<String>, selected: String,
             }
         }
     }
+
 }
 
 fun convertToIsoDate(dateFr: String): String {
