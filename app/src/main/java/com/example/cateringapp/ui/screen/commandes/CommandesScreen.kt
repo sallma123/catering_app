@@ -127,11 +127,14 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                             },
                             onFicheClick = { navController.navigate("ficheCommande/${commande.id}") },
                             onDuplicateClick = {
-                                Toast.makeText(
-                                    context,
-                                    "Duplication bientôt disponible",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                val duplicated = commande.toDTO().copy(id = null) // ← très important
+                                navController.currentBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("commandeExistante", duplicated)
+
+                                navController.navigate("creerCommande/${commande.typeClient}") {
+                                    launchSingleTop = true
+                                }
                             },
                             content = {
                                 CommandeCard(commande) {

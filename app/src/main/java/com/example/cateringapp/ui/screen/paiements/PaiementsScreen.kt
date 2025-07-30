@@ -198,7 +198,7 @@ fun PaiementCard(commande: Commande, reste: Double, onDollarClick: () -> Unit)
         elevation = cardElevation(4.dp)
     ) {
         Column(Modifier.padding(12.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "${commande.typeCommande} : ${commande.total} Dh",
                     color = Color(0xFFFFC107),
@@ -208,7 +208,6 @@ fun PaiementCard(commande: Commande, reste: Double, onDollarClick: () -> Unit)
                     Icon(Icons.Default.AttachMoney, contentDescription = "Avances", tint = Color.Green)
                 }
             }
-            Spacer(Modifier.height(4.dp))
             Text("${commande.nomClient} | ${commande.salle} | ${commande.nombreTables} tables | $dateFormatted")
             Text("Reste à payer : ${"%.2f".format(reste)} Dh", fontWeight = FontWeight.SemiBold)
         }
