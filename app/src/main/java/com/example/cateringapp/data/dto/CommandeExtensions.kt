@@ -14,6 +14,7 @@ fun Commande.toDTO(): CommandeDTO {
         statut = this.statut,
         date = this.date,
         objet = this.objet,
+        commentaire = commentaire,
         produits = this.produits // ✅ Et pas emptyList()
     )
 }

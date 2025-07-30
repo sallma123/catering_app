@@ -12,6 +12,7 @@ data class Commande(
     val total: Double,
     val date: String,
     var objet: String? = null,
+    val commentaire: String? = null,
     val produits: List<ProduitCommande> = emptyList(),
     var avances: List<Avance> = emptyList())
 {

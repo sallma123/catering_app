@@ -12,6 +12,7 @@ data class CommandeDTO(
     val statut: String,
     val date: String,
     val produits: List<ProduitCommande> = emptyList(),
-    var objet: String? = null
+    var objet: String? = null,
+    val commentaire: String? = null
 
 ) : Serializable

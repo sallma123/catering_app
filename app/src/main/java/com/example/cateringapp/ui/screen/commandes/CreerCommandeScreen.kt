@@ -45,7 +45,8 @@ fun CreerCommandeScreen(
     var typeCommande by remember { mutableStateOf(commandeInitiale?.typeCommande ?: "") }
     var statut by remember { mutableStateOf(commandeInitiale?.statut ?: "PAYEE") }
     var objet by remember { mutableStateOf(commandeInitiale?.objet ?: "") }
-    
+    var commentaire by remember { mutableStateOf(commandeInitiale?.commentaire ?: "") }
+
     // ✅ MODIF : Variable locale pour stocker la commande courante (modifiée ou non)
     var commandeCourante by remember { mutableStateOf(commandeInitiale) }
 
@@ -68,6 +69,7 @@ fun CreerCommandeScreen(
             date = convertIsoToFr(it.date)
             typeCommande = it.typeCommande
             statut = it.statut
+            commentaire = it.commentaire ?: ""
             objet = it.objet ?: ""
             commandeCourante = it
         }
@@ -160,6 +162,13 @@ fun CreerCommandeScreen(
                 colors = textFieldColors()
             )
         }
+        OutlinedTextField(
+            value = commentaire,
+            onValueChange = { commentaire = it },
+            label = { Text("Commentaire") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = textFieldColors()
+        )
 
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -181,7 +190,8 @@ fun CreerCommandeScreen(
                             typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
                             statut = statut,
                             date = isoDate,
-                            objet = objet
+                            objet = objet,
+                            commentaire = commentaire
                         )
 
                         val id = commandeInitiale.id
@@ -253,7 +263,8 @@ fun CreerCommandeScreen(
                         typeCommande = mapTypeCommandeLabelToEnum(typeCommande),
                         statut = statut,
                         date = isoDate,
-                        objet = objet, // ✅ très important
+                        objet = objet,
+                        commentaire = commentaire,
                         produits = emptyList()
                     )
 
