@@ -44,7 +44,8 @@ fun CreerCommandeScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var typeCommande by remember { mutableStateOf(commandeInitiale?.typeCommande ?: "") }
     var statut by remember { mutableStateOf(commandeInitiale?.statut ?: "PAYEE") }
-
+    var objet by remember { mutableStateOf(commandeInitiale?.objet ?: "") }
+    
     // ✅ MODIF : Variable locale pour stocker la commande courante (modifiée ou non)
     var commandeCourante by remember { mutableStateOf(commandeInitiale) }
 
@@ -54,6 +55,23 @@ fun CreerCommandeScreen(
 
     val commandesOptions = if (typeClient.equals("Entreprise", true)) typesPro else typesParticulier
     val isNombreTable = typeClient.equals("Particulier", true) || typeClient.equals("Partenaire", true)
+    val savedCommande = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.get<CommandeDTO>("commandeExistante")
+
+    LaunchedEffect(savedCommande) {
+        savedCommande?.let {
+            // Recharge tous les champs avec la nouvelle commande
+            nomClient = it.nomClient
+            salle = it.salle
+            nombre = it.nombreTables.toString()
+            date = convertIsoToFr(it.date)
+            typeCommande = it.typeCommande
+            statut = it.statut
+            objet = it.objet ?: ""
+            commandeCourante = it
+        }
+    }
 
     if (showDatePicker) {
         val calendar = Calendar.getInstance()

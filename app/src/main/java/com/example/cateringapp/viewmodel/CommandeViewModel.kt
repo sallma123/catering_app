@@ -109,5 +109,27 @@ class CommandeViewModel : ViewModel() {
     fun getCommandeById(id: Long): Commande? {
         return _commandes.value.find { it.id == id }
     }
+    fun creerCommande(dto: CommandeDTO, onSuccess: (Long) -> Unit, onError: () -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.creerCommande(dto)
+                if (response.isSuccessful) {
+                    val idCree = response.body()?.id
+                    if (idCree != null) {
+                        fetchCommandes()
+                        onSuccess(idCree)
+                    } else {
+                        onError()
+                    }
+                } else {
+                    onError()
+                }
+            } catch (e: Exception) {
+                Log.e("CommandeViewModel", "Erreur création commande : ${e.message}")
+                onError()
+            }
+        }
+    }
+
 
 }
