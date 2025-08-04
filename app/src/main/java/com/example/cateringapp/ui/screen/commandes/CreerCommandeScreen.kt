@@ -51,8 +51,8 @@ fun CreerCommandeScreen(
     // ✅ MODIF : Variable locale pour stocker la commande courante (modifiée ou non)
     var commandeCourante by remember { mutableStateOf(commandeInitiale) }
 
-    val typesParticulier = listOf("Mariage", "Anniversaire", "Baptême")
-    val typesPro = listOf("Buffet de soutenance", "Repas coffret", "Séminaire")
+    val typesParticulier = listOf("Mariage", "Anniversaire", "Baptême","Fiançailles","Henna","Ftour Ramadan")
+    val typesPro = listOf("Buffet de soutenance", "Repas coffret", "Séminaire","Ftour Ramadan")
     val statutLabels = mapOf(
         "NOUVEAU" to "Nouveau",
         "CONFIRMEE" to "Confirmée",
@@ -408,6 +408,9 @@ fun mapTypeCommandeLabelToEnum(label: String): String {
         "Buffet de soutenance" -> "BUFFET_DE_SOUTENANCE"
         "Repas coffret" -> "REPAS_COFFRET"
         "Séminaire" -> "SÉMINAIRE"
+        "Ftour Ramadan" -> "FTOUR_RAMADAN"
+        "Fiançailles" -> "FIANCAILLES"
+        "Henna" -> "HENNA"
         else -> label.uppercase().replace(" ", "_")
     }
 }
