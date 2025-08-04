@@ -47,7 +47,10 @@ fun SelectionProduitsScreen(
             ProduitCommande("Amuses bouche", "Réception", 0.0),
             ProduitCommande("Bébé macaron et Mini cookies", "Réception", 0.0),
             ProduitCommande("Petits fours salés (2 types)", "Réception", 0.0),
-            ProduitCommande("Amandes salés", "Réception", 0.0)
+            ProduitCommande("Amandes salés", "Réception", 0.0),
+            ProduitCommande("Choux caramélisés", "Réception", 0.0),
+            ProduitCommande("Sushis", "Réception", 0.0)
+
         )
         val cocktail = mutableListOf(
             ProduitCommande("Jus parfums nature (fraise, citron gingembre, avocat à orange)", "Cocktail d’accueil servi à table", 0.0),
@@ -56,7 +59,10 @@ fun SelectionProduitsScreen(
         )
         val entremets = mutableListOf(
             ProduitCommande("Nems viande hachée", "Entremets", 0.0),
+            ProduitCommande("Verrines crevette", "Entremets", 0.0),
             ProduitCommande("Briouates poulet épinard", "Entremets", 0.0),
+            ProduitCommande("Coquillages poisson blanc", "Entremets", 0.0),
+            ProduitCommande("Coquillages aigre doux", "Entremets", 0.0),
             ProduitCommande("Cake salé", "Entremets", 0.0)
         )
         val festival = mutableListOf(
@@ -65,10 +71,14 @@ fun SelectionProduitsScreen(
         )
         val diner = mutableListOf(
             ProduitCommande("Poulet dermira", "Diner", 0.0),
+            ProduitCommande("Pastilla Poisson royale", "Diner", 0.0),
+            ProduitCommande("Mechwi d'agneau avec garniture", "Diner", 0.0),
+            ProduitCommande("Chwa avec garniture", "Diner", 0.0),
             ProduitCommande("Tajine de veau contemporain", "Diner", 0.0)
         )
         val dessert = mutableListOf(
-            ProduitCommande("Corbeille de fruits", "Côté dessert", 0.0)
+            ProduitCommande("Corbeille de fruits", "Côté dessert", 0.0),
+            ProduitCommande("Gâteau glacé", "Côté dessert", 0.0)
         )
         val apresdiner = mutableListOf(
             ProduitCommande("Café", "Après Diner", 0.0),
