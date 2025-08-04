@@ -407,7 +407,7 @@ fun mapTypeCommandeLabelToEnum(label: String): String {
         "Baptême" -> "BAPTEME"
         "Buffet de soutenance" -> "BUFFET_DE_SOUTENANCE"
         "Repas coffret" -> "REPAS_COFFRET"
-        "Séminaire" -> "SÉMINAIRE"
+        "Séminaire" -> "SEMINAIRE"
         "Ftour Ramadan" -> "FTOUR_RAMADAN"
         "Fiançailles" -> "FIANCAILLES"
         "Henna" -> "HENNA"

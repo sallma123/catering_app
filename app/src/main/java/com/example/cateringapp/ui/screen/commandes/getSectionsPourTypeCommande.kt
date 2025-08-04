@@ -8,7 +8,7 @@ fun getSectionsPourTypeCommande(typeCommande: String): List<SectionProduit> {
     val supplement = mutableListOf<ProduitCommande>()
 
     return when (typeCommande.uppercase()) {
-        "BUFFET_DE_SOUTENANCE" -> listOf(
+        "BUFFET_DE_SOUTENANCE", "REPAS_COFFRET", "SEMINAIRE" -> listOf(
             SectionProduit("Côté sucré", listOf(
                 ProduitCommande("Mini Soirées", "Côté sucré", 0.0),
                 ProduitCommande("Mini tartelettes", "Côté sucré", 0.0),
