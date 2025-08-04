@@ -2,7 +2,6 @@ package com.example.cateringapp.ui.screen.commandes
 
 import CommandeDTO
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,92 +37,27 @@ fun SelectionProduitsScreen(
     apiService: ApiService = RetrofitInstance.api
 ) {
     val context = LocalContext.current
-    var prixParTable by remember { mutableStateOf("") }
+    var prixParTable by remember { mutableStateOf(commandeDTO.prixParTable.takeIf { it > 0 }?.toString() ?: "") }
     var total by remember { mutableStateOf(0.0) }
 
-    fun initialiserSectionsAvecProduits(): List<SectionProduit> {
-        val reception = mutableListOf(
-            ProduitCommande("Dattes et lait", "Réception", 0.0),
-            ProduitCommande("Amuses bouche", "Réception", 0.0),
-            ProduitCommande("Bébé macaron et Mini cookies", "Réception", 0.0),
-            ProduitCommande("Petits fours salés (2 types)", "Réception", 0.0),
-            ProduitCommande("Amandes salés", "Réception", 0.0),
-            ProduitCommande("Choux caramélisés", "Réception", 0.0),
-            ProduitCommande("Sushis", "Réception", 0.0)
-
-        )
-        val cocktail = mutableListOf(
-            ProduitCommande("Jus parfums nature (fraise, citron gingembre, avocat à orange)", "Cocktail d’accueil servi à table", 0.0),
-            ProduitCommande("Gâteaux soirée", "Cocktail d’accueil servi à table", 0.0),
-            ProduitCommande("Gâteaux prestige", "Cocktail d’accueil servi à table", 0.0)
-        )
-        val entremets = mutableListOf(
-            ProduitCommande("Nems viande hachée", "Entremets", 0.0),
-            ProduitCommande("Verrines crevette", "Entremets", 0.0),
-            ProduitCommande("Briouates poulet épinard", "Entremets", 0.0),
-            ProduitCommande("Coquillages poisson blanc", "Entremets", 0.0),
-            ProduitCommande("Coquillages aigre doux", "Entremets", 0.0),
-            ProduitCommande("Cake salé", "Entremets", 0.0)
-        )
-        val festival = mutableListOf(
-            ProduitCommande("Thé", "Festival de gâteaux beldi", 0.0),
-            ProduitCommande("4 Gâteaux amandes : k3ab, Kehk, ghraiba aux noix, la lune à l’orange", "Festival de gâteaux beldi", 0.0)
-        )
-        val diner = mutableListOf(
-            ProduitCommande("Poulet dermira", "Diner", 0.0),
-            ProduitCommande("Pastilla Poisson royale", "Diner", 0.0),
-            ProduitCommande("Mechwi d'agneau avec garniture", "Diner", 0.0),
-            ProduitCommande("Chwa avec garniture", "Diner", 0.0),
-            ProduitCommande("Tajine de veau contemporain", "Diner", 0.0)
-        )
-        val dessert = mutableListOf(
-            ProduitCommande("Corbeille de fruits", "Côté dessert", 0.0),
-            ProduitCommande("Gâteau glacé", "Côté dessert", 0.0)
-        )
-        val apresdiner = mutableListOf(
-            ProduitCommande("Café", "Après Diner", 0.0),
-            ProduitCommande("Gâteaux au miel : briwat, mhencha", "Après Diner", 0.0)
-        )
-
-        val supplement = mutableListOf<ProduitCommande>()
-
+    val sections = remember {
+        val initialSections = getSectionsPourTypeCommande(commandeDTO.typeCommande)
         commandeDTO.produits.forEach { produit ->
-            val target = when (produit.categorie) {
-                "Réception" -> reception
-                "Cocktail d’accueil servi à table" -> cocktail
-                "Entremets" -> entremets
-                "Festival de gâteaux beldi" -> festival
-                "Diner" -> diner
-                "Côté dessert" -> dessert
-                "Après Diner" -> apresdiner
-                "Supplément" -> supplement
-                else -> supplement
-            }
-            val index = target.indexOfFirst { it.nom == produit.nom }
-            if (index >= 0) {
-                target[index] = target[index].copy(
-                    prix = produit.prix,
-                    selectionne = true,
-                    quantite = produit.quantite
-                )
-            } else {
-                target.add(produit.copy(selectionne = true))
+            initialSections.find { it.titre == produit.categorie }?.let { section ->
+                val index = section.produits.indexOfFirst { it.nom == produit.nom }
+                if (index >= 0) {
+                    section.produits[index] = section.produits[index].copy(
+                        prix = produit.prix,
+                        selectionne = true,
+                        quantite = produit.quantite
+                    )
+                } else {
+                    section.produits.add(produit.copy(selectionne = true))
+                }
             }
         }
-
-        return listOf(
-            SectionProduit("Réception", reception.toMutableStateList()),
-            SectionProduit("Cocktail d’accueil servi à table", cocktail.toMutableStateList()),
-            SectionProduit("Entremets", entremets.toMutableStateList()),
-            SectionProduit("Festival de gâteaux beldi", festival.toMutableStateList()),
-            SectionProduit("Diner", diner.toMutableStateList()),
-            SectionProduit("Côté dessert", dessert.toMutableStateList()),
-            SectionProduit("Après Diner", apresdiner.toMutableStateList()),
-            SectionProduit("Supplément", supplement.toMutableStateList())
-        )
+        initialSections.toMutableStateList()
     }
-
-    val sections = remember { initialiserSectionsAvecProduits().toMutableStateList() }
 
     fun recalculerTotal() {
         val base = prixParTable.toDoubleOrNull() ?: 0.0
@@ -133,10 +67,7 @@ fun SelectionProduitsScreen(
         total = commandeDTO.nombreTables * base + totalSuppl
     }
 
-    LaunchedEffect(Unit) {
-        prixParTable = commandeDTO.prixParTable.takeIf { it > 0 }?.toString() ?: ""
-        recalculerTotal()
-    }
+    LaunchedEffect(Unit) { recalculerTotal() }
 
     Scaffold(containerColor = Color(0xFF121212)) { paddingValues ->
         Column(
@@ -191,17 +122,9 @@ fun SelectionProduitsScreen(
                             Text(produit.nom, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
                             if (section.titre == "Supplément") {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        "${(produit.quantite ?: 1)} x",
-                                        color = Color.LightGray,
-                                        fontSize = 12.sp
-                                    )
+                                    Text("${(produit.quantite ?: 1)} x", color = Color.LightGray, fontSize = 12.sp)
                                     Spacer(Modifier.width(4.dp))
-                                    Text(
-                                        "${produit.prix} DH",
-                                        color = Color.Gray,
-                                        fontSize = 12.sp
-                                    )
+                                    Text("${produit.prix} DH", color = Color.Gray, fontSize = 12.sp)
                                 }
                             } else if (produit.prix > 0) {
                                 Text("${produit.prix} DH", color = Color.Gray, fontSize = 12.sp)
@@ -212,10 +135,7 @@ fun SelectionProduitsScreen(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = newNom,
                         onValueChange = { newNom = it },
@@ -263,7 +183,6 @@ fun SelectionProduitsScreen(
                         Icon(Icons.Default.Add, contentDescription = "Ajouter", tint = Color(0xFFFFC107))
                     }
                 }
-
 
                 Spacer(modifier = Modifier.height(12.dp))
             }
