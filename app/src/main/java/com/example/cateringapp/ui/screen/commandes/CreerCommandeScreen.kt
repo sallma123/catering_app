@@ -43,7 +43,7 @@ fun CreerCommandeScreen(
     var date by remember { mutableStateOf(commandeInitiale?.date?.let { convertIsoToFr(it) } ?: getTodayFr()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var typeCommande by remember { mutableStateOf(commandeInitiale?.typeCommande ?: "") }
-    var statut by remember { mutableStateOf(commandeInitiale?.statut ?: "PAYEE") }
+    var statut by remember { mutableStateOf(commandeInitiale?.statut ?: "NOUVEAU") }
     var objet by remember { mutableStateOf(commandeInitiale?.objet ?: "") }
     var commentaire by remember { mutableStateOf(commandeInitiale?.commentaire ?: "") }
     var showDialogConfirmation by remember { mutableStateOf(false) }
@@ -53,7 +53,14 @@ fun CreerCommandeScreen(
 
     val typesParticulier = listOf("Mariage", "Anniversaire", "Baptême")
     val typesPro = listOf("Buffet de soutenance", "Repas coffret", "Séminaire")
-    val statuts = listOf("PAYEE", "NON_PAYEE")
+    val statutLabels = mapOf(
+        "NOUVEAU" to "Nouveau",
+        "CONFIRMEE" to "Confirmée",
+        "ANNULEE" to "Annulée",
+        "PAYEE_PARTIELLEMENT" to "Payée partiellement",
+        "PAYEE" to "Payée"
+    )
+    val statuts = statutLabels.keys.toList()
     fun continuerCreationCommande(dateIso: String) {
         val commande = CommandeDTO(
             nomClient = nomClient,
@@ -167,9 +174,19 @@ fun CreerCommandeScreen(
             colors = textFieldColors()
         )
 
-        ExposedDropdownField("Statut", statuts, statut) {
-            statut = it
-        }
+        ExposedDropdownField(
+            label = "Statut",
+            options = statuts.map { statutLabels[it] ?: it }, // affiche labels
+            selected = statutLabels[statut] ?: statut,        // affiche label actuel
+            onSelected = { selectedLabel ->
+                // Inverser la map : label → enum
+                val selectedEnum = statutLabels.entries.firstOrNull { it.value == selectedLabel }?.key
+                if (selectedEnum != null) {
+                    statut = selectedEnum
+                }
+            }
+        )
+
         var objet by remember { mutableStateOf(commandeInitiale?.objet ?: "") }
 
         if (typeClient.equals("ENTREPRISE", ignoreCase = true)) {
@@ -404,4 +421,5 @@ fun convertIsoToFr(dateIso: String): String {
         getTodayFr()
     }
 }
+
 
