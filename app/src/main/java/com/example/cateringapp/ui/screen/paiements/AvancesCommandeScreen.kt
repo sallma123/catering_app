@@ -1,14 +1,13 @@
 package com.example.cateringapp.ui.screen.paiements
 
 import androidx.compose.foundation.text.KeyboardOptions
+import android.app.DatePickerDialog
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
@@ -30,7 +29,6 @@ import java.util.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.flow.map
 
-
 @Composable
 fun AvancesCommandeScreen(
     navController: NavController,
@@ -44,104 +42,121 @@ fun AvancesCommandeScreen(
 
     val commande = commandeState.value ?: return
 
-
     var montant by remember { mutableStateOf("") }
     var date by remember { mutableStateOf(getTodayFr()) }
+    var showDatePicker by remember { mutableStateOf(false) }
 
-    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     val avances = viewModel.getAvancesForCommande(commande.id ?: 0L).collectAsState(initial = emptyList())
-
     val reste = commande.total - avances.value.sumOf { it.montant }
 
+    if (showDatePicker) {
+        val calendar = Calendar.getInstance()
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                date = String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+        showDatePicker = false
+    }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .background(Color(0xFF121212))
-            .padding(16.dp)
+            .padding(16.dp),
+        contentPadding = PaddingValues(bottom = 100.dp)
     ) {
-        Text("Avances pour ${commande.nomClient}", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
+        item {
+            Text("Avances pour ${commande.nomClient}", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(Modifier.height(12.dp))
 
-        // Statistiques
-        Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-            Text("Total: ${commande.total} Dh", color = Color.White)
-            Text("Payé: ${commande.total - reste} Dh", color = Color.White)
-            Text("Reste: $reste Dh", color = Color.White)
+            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                Text("Total: ${commande.total} Dh", color = Color.White)
+                Text("Payé: ${commande.total - reste} Dh", color = Color.White)
+                Text("Reste: $reste Dh", color = Color.White)
+            }
 
+            Spacer(Modifier.height(16.dp))
+            Text("Historique des avances", color = Color.Gray)
         }
 
-        Spacer(Modifier.height(16.dp))
-
-        // Liste des avances
-        Text("Historique des avances", color = Color.Gray)
-        Column {
-            avances.value.forEach { avance ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White)
-                ) {
-                    Column(Modifier.padding(12.dp)) {
-                        Text("${avance.montant} Dh", fontWeight = FontWeight.Bold)
-                        Text("Date: ${convertIsoToFr(avance.date)}")
-                    }
+        items(avances.value) { avance ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Column(Modifier.padding(12.dp)) {
+                    Text("${avance.montant} Dh", fontWeight = FontWeight.Bold)
+                    Text("Date: ${convertIsoToFr(avance.date)}")
                 }
             }
         }
 
+        item {
+            Spacer(Modifier.height(12.dp))
 
-        Spacer(Modifier.height(12.dp))
+            OutlinedTextField(
+                value = montant,
+                onValueChange = { montant = it },
+                label = { Text("Montant avance") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = textFieldColorsAvance(),
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        // Ajout d'une avance
-        OutlinedTextField(
-            value = montant,
-            onValueChange = { montant = it },
-            label = { Text("Montant avance") },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            colors = textFieldColorsAvance(),
-            modifier = Modifier.fillMaxWidth()
-        )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDatePicker = true }
+            ) {
+                OutlinedTextField(
+                    value = date,
+                    onValueChange = {},
+                    label = { Text("Date avance") },
+                    enabled = false,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        disabledTextColor = Color.White,
+                        disabledBorderColor = Color.Gray,
+                        disabledLabelColor = Color.Gray,
+                        disabledTrailingIconColor = Color.Gray,
+                        disabledPlaceholderColor = Color.Gray
+                    )
+                )
+            }
 
-        OutlinedTextField(
-            value = date,
-            onValueChange = { date = it },
-            label = { Text("Date avance") },
-            colors = textFieldColorsAvance(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    // ici tu peux ouvrir un DatePicker si tu veux
-                }
-        )
+            Spacer(Modifier.height(12.dp))
 
-        Spacer(Modifier.height(12.dp))
+            Button(
+                onClick = {
+                    val montantVal = montant.toDoubleOrNull()
+                    if (montantVal == null || montantVal <= 0) {
+                        Toast.makeText(context, "Montant invalide", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
-        Button(
-            onClick = {
-                val montantVal = montant.toDoubleOrNull()
-                if (montantVal == null || montantVal <= 0) {
-                    Toast.makeText(context, "Montant invalide", Toast.LENGTH_SHORT).show()
-                    return@Button
-                }
+                    if (montantVal > reste) {
+                        Toast.makeText(context, "Montant dépasse le reste à payer", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
-                if (montantVal > reste) {
-                    Toast.makeText(context, "Montant dépasse le reste à payer", Toast.LENGTH_SHORT).show()
-                    return@Button
-                }
-
-                viewModel.ajouterAvance(commande.id!!, Avance(montant = montantVal, date = convertToIsoDate(date)))
-                montant = ""
-                Toast.makeText(context, "Avance ajoutée", Toast.LENGTH_SHORT).show()
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
-        ) {
-            Icon(Icons.Default.Add, contentDescription = "Ajouter", tint = Color.Black)
-            Spacer(Modifier.width(8.dp))
-            Text("Ajouter Avance", color = Color.Black)
+                    viewModel.ajouterAvance(commande.id!!, Avance(montant = montantVal, date = convertToIsoDate(date)))
+                    montant = ""
+                    Toast.makeText(context, "Avance ajoutée", Toast.LENGTH_SHORT).show()
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Ajouter", tint = Color.Black)
+                Spacer(Modifier.width(8.dp))
+                Text("Ajouter Avance", color = Color.Black)
+            }
         }
     }
 }
