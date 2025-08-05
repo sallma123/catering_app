@@ -163,16 +163,27 @@ fun CreerCommandeScreen(
             colors = textFieldColors()
         )
 
-        OutlinedTextField(
-            value = date,
-            onValueChange = {},
-            label = { Text("Date") },
-            readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { showDatePicker = true },
-            colors = textFieldColors()
-        )
+        Box(modifier = Modifier
+            .fillMaxWidth()
+            .clickable { showDatePicker = true }) {
+
+            OutlinedTextField(
+                value = date,
+                onValueChange = {},
+                label = { Text("Date") },
+                enabled = false, // empêche l'utilisateur de saisir
+                modifier = Modifier
+                    .fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = Color.White,
+                    disabledBorderColor = Color.Gray,
+                    disabledLabelColor = Color.Gray,
+                    disabledTrailingIconColor = Color.Gray,
+                    disabledPlaceholderColor = Color.Gray
+                )
+            )
+        }
+
 
         ExposedDropdownField(
             label = "Statut",
