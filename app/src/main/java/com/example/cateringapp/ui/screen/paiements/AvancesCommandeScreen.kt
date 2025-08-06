@@ -27,6 +27,7 @@ import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.cateringapp.ui.component.StatsPaiementRow
 import kotlinx.coroutines.flow.map
 
 @Composable
@@ -75,15 +76,15 @@ fun AvancesCommandeScreen(
     ) {
         item {
             Text("Avances pour ${commande.nomClient}", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(1.dp))
 
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                Text("Total: ${commande.total} Dh", color = Color.White)
-                Text("Payé: ${commande.total - reste} Dh", color = Color.White)
-                Text("Reste: $reste Dh", color = Color.White)
-            }
+            StatsPaiementRow(
+                total = commande.total,
+                paye = commande.total - reste,
+                reste = reste
+            )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(1.dp))
             Text("Historique des avances", color = Color.Gray)
         }
 
@@ -194,6 +195,7 @@ fun convertIsoToFr(dateIso: String): String {
         getTodayFr()
     }
 }
+
 
 @Composable
 fun textFieldColorsAvance() = OutlinedTextFieldDefaults.colors(

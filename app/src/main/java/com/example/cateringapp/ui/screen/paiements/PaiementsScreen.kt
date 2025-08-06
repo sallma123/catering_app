@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.cateringapp.data.dto.Commande
+import com.example.cateringapp.ui.component.StatsPaiementRow
 import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -110,9 +111,9 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(2.dp))
             StatsPaiementRow(totalCA, totalPaye, totalReste)
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(3.dp))
 
             LazyColumn(
                 modifier = Modifier
@@ -142,29 +143,6 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
                 }
             }
         }
-    }
-}
-
-
-@Composable
-fun StatsPaiementRow(total: Double, paye: Double, reste: Double) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        StatBox("CA", total)
-        StatBox("Payé", paye)
-        StatBox("Reste", reste)
-    }
-}
-
-@Composable
-fun StatBox(label: String, value: Double) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, color = Color.Gray, fontSize = 14.sp)
-        Text("${"%.2f".format(value)} Dh", color = Color(0xFFFFC107), fontSize = 18.sp, fontWeight = FontWeight.Bold)
     }
 }
 
