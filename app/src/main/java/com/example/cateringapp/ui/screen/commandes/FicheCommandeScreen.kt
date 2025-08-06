@@ -186,10 +186,3 @@ private fun ouvrirPDF(context: Context, uri: Uri) {
     }
 }
 
-private fun partagerPDF(context: Context, uri: Uri) {
-    val intent = Intent(Intent.ACTION_SEND)
-    intent.type = "application/pdf"
-    intent.putExtra(Intent.EXTRA_STREAM, uri)
-    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    context.startActivity(Intent.createChooser(intent, "Partager avec..."))
-}

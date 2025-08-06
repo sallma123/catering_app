@@ -60,15 +60,30 @@ fun CommandeSwipeItem(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            //Duplication - icône en jaune
             ActionButton(
-                color = Color(0xFFAD9FFF),
+                color = Color(0xFFFFE8D1), // fond sombre pour contraste
                 icon = Icons.Default.ContentCopy,
-                onClick = onDuplicateClick
+                onClick = onDuplicateClick,
+                iconTint = Color(0xFFFFC107)
+            ) // couleur jaune
+
+
+            // Fiche - fond jaune, icône blanche
+            ActionButton(
+                color = Color(0xFFFFC107),
+                icon = Icons.Default.Description,
+                onClick = onFicheClick
             )
 
-            ActionButton(color = Color(0xFFFFC107), icon = Icons.Default.Description, onClick = onFicheClick)
-            ActionButton(color = Color.Red, icon = Icons.Default.Delete, onClick = onDeleteClick)
+            // Suppression - rouge
+            ActionButton(
+                color = Color(0xFFDC3B3B),
+                icon = Icons.Default.Delete,
+                onClick = onDeleteClick
+            )
         }
+
 
         // Foreground content (Commande card)
         Box(
@@ -96,7 +111,12 @@ fun CommandeSwipeItem(
 }
 
 @Composable
-private fun ActionButton(color: Color, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+private fun ActionButton(
+    color: Color,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
+    iconTint: Color = Color.White // ⬅️ Par défaut blanc, mais personnalisable
+) {
     Box(
         modifier = Modifier
             .width(60.dp)
@@ -105,6 +125,6 @@ private fun ActionButton(color: Color, icon: androidx.compose.ui.graphics.vector
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Icon(imageVector = icon, contentDescription = null, tint = Color.White)
+        Icon(imageVector = icon, contentDescription = null, tint = iconTint)
     }
 }
