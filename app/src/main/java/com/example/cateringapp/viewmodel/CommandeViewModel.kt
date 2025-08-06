@@ -14,6 +14,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class CommandeViewModel : ViewModel() {
+    private val _avances = MutableStateFlow<Map<Long, List<Avance>>>(emptyMap())
+    val avances = _avances.asStateFlow()
 
     private val _commandes = MutableStateFlow<List<Commande>>(emptyList())
     val commandes: StateFlow<List<Commande>> = _commandes.asStateFlow()
@@ -27,12 +29,17 @@ class CommandeViewModel : ViewModel() {
         fetchCommandes()
     }
 
+
     fun fetchCommandes() {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.api.getCommandes()
                 _commandes.value = response
                 regrouperParDate(response)
+
+                // ✅ Appel correct ici
+                chargerToutesLesAvances(response)
+
             } catch (e: Exception) {
                 _commandes.value = emptyList()
                 _commandesParDate.value = emptyMap()
@@ -40,6 +47,7 @@ class CommandeViewModel : ViewModel() {
             }
         }
     }
+
 
     private fun regrouperParDate(commandes: List<Commande>) {
         val map = commandes.groupBy { it.date }
@@ -69,14 +77,21 @@ class CommandeViewModel : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                RetrofitInstance.api.modifierCommande(id, commandeDTO)
-                fetchCommandes()
-                onSuccess()
+                val response = RetrofitInstance.api.modifierCommande(id, commandeDTO)
+                if (response.isSuccessful) {
+                    fetchCommandes()
+                    onSuccess()
+                } else {
+                    Log.e("CommandeViewModel", "❌ Erreur HTTP : ${response.code()} - ${response.message()}")
+                    onError()
+                }
             } catch (e: Exception) {
+                Log.e("CommandeViewModel", "❌ Exception : ${e.message}")
                 onError()
             }
         }
     }
+
 
     // ✅ Ajouter une avance à une commande
     fun ajouterAvance(idCommande: Long, avance: Avance) {
@@ -85,7 +100,15 @@ class CommandeViewModel : ViewModel() {
                 val response = RetrofitInstance.api.ajouterAvance(idCommande, avance)
                 if (response.isSuccessful) {
                     Log.d("Avance", "✅ Avance bien ajoutée")
-                    fetchCommandes() // Met à jour les commandes (avec les nouvelles avances)
+
+                    // 🔁 Petite attente (assure que l'avance est bien persistée)
+                    kotlinx.coroutines.delay(300)
+
+                    // 🔁 Recharge les avances depuis l'API
+                    chargerAvancesPourCommande(idCommande)
+
+                    // 🔁 Recharge les commandes (pour mise à jour du reste si modifié)
+                    fetchCommandes()
                 } else {
                     Log.e("Avance", "❌ Échec de l'ajout : ${response.code()}")
                 }
@@ -96,16 +119,13 @@ class CommandeViewModel : ViewModel() {
     }
 
 
+
+
     // ✅ Récupérer les avances d'une commande
-    fun getAvancesForCommande(idCommande: Long): Flow<List<Avance>> = flow {
-        try {
-            val result = RetrofitInstance.api.getAvancesByCommande(idCommande)
-            emit(result)
-        } catch (e: Exception) {
-            Log.e("CommandeViewModel", "Erreur getAvances: ${e.message}")
-            emit(emptyList())
-        }
+    fun getAvancesForCommande(idCommande: Long): Flow<List<Avance>> {
+        return avances.map { it[idCommande] ?: emptyList() }
     }
+
     fun getCommandeById(id: Long): Commande? {
         return _commandes.value.find { it.id == id }
     }
@@ -144,6 +164,34 @@ class CommandeViewModel : ViewModel() {
             }
         }
     }
+    fun chargerAvancesPourCommande(idCommande: Long) {
+        viewModelScope.launch {
+            try {
+                val result = RetrofitInstance.api.getAvancesByCommande(idCommande)
+                val nouvelleMap = _avances.value.toMutableMap()
+                nouvelleMap[idCommande] = result
+                _avances.value = nouvelleMap
+            } catch (e: Exception) {
+                Log.e("CommandeViewModel", "Erreur chargement avances init : ${e.message}")
+            }
+        }
+    }
+    fun chargerToutesLesAvances(commandes: List<Commande>) {
+        viewModelScope.launch {
+            try {
+                val nouvellesAvances = mutableMapOf<Long, List<Avance>>()
+                commandes.forEach { commande ->
+                    val id = commande.id ?: return@forEach
+                    val result = RetrofitInstance.api.getAvancesByCommande(id)
+                    nouvellesAvances[id] = result
+                }
+                _avances.value = nouvellesAvances
+            } catch (e: Exception) {
+                Log.e("CommandeViewModel", "Erreur chargement avances global : ${e.message}")
+            }
+        }
+    }
+
 
 
 }

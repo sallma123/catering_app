@@ -1,7 +1,5 @@
 package com.example.cateringapp.ui.screen.paiements
 
-import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.cateringapp.data.dto.Avance
 import com.example.cateringapp.data.dto.Commande
 import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
@@ -29,7 +26,12 @@ import java.util.*
 
 @Composable
 fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel = viewModel()) {
+    LaunchedEffect(Unit) {
+        viewModel.chargerToutesLesAvances(viewModel.commandes.value)
+    }
+
     val commandes by viewModel.commandes.collectAsState()
+    val avancesMap by viewModel.avances.collectAsState()
     val context = LocalContext.current
 
     var query by remember { mutableStateOf("") }
@@ -41,6 +43,8 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
     val sdfMois = SimpleDateFormat("MMMM", Locale.FRENCH)
     val sdfSort = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val today = remember { Date() }
+
+
 
     val commandesFiltrees = commandes.filter {
         val nomMatch = it.nomClient.contains(query, ignoreCase = true) || it.salle.contains(query, ignoreCase = true)
@@ -57,20 +61,6 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
         }
 
         nomMatch && dateOK
-    }
-
-    // 🔄 Calcul dynamique des avances
-    val avancesMap = remember { mutableStateMapOf<Long, List<Avance>>() }
-
-    LaunchedEffect(commandesFiltrees) {
-        commandesFiltrees.forEach { commande ->
-            val id = commande.id
-            if (id != null) {
-                viewModel.getAvancesForCommande(id).collect { avances ->
-                    avancesMap[id] = avances
-                }
-            }
-        }
     }
 
     val totalCA = commandesFiltrees.sumOf { it.total }
@@ -119,7 +109,6 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
                     DateSelector("Date fin", dateFin) { dateFin = it }
                 }
             }
-
 
             Spacer(Modifier.height(12.dp))
             StatsPaiementRow(totalCA, totalPaye, totalReste)

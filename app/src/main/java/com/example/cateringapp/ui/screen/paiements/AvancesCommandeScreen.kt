@@ -41,6 +41,9 @@ fun AvancesCommandeScreen(
         .collectAsState(initial = null)
 
     val commande = commandeState.value ?: return
+    LaunchedEffect(commande.id) {
+        viewModel.chargerAvancesPourCommande(commande.id!!)
+    }
 
     var montant by remember { mutableStateOf("") }
     var date by remember { mutableStateOf(getTodayFr()) }
@@ -146,9 +149,16 @@ fun AvancesCommandeScreen(
                         return@Button
                     }
 
-                    viewModel.ajouterAvance(commande.id!!, Avance(montant = montantVal, date = convertToIsoDate(date)))
+                    viewModel.ajouterAvance(
+                        commande.id!!,
+                        Avance(montant = montantVal, date = convertToIsoDate(date))
+                    )
+                    // 🔄 Forcer rafraîchissement global après ajout
+                    viewModel.fetchCommandes()
                     montant = ""
+                    date = getTodayFr()
                     Toast.makeText(context, "Avance ajoutée", Toast.LENGTH_SHORT).show()
+
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
