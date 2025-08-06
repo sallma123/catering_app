@@ -42,8 +42,11 @@ fun FicheCommandeScreen(id: Long, navController: NavController, apiService: ApiS
         val result = telechargerEtEnregistrerPDF(context, id, apiService)
         when (result) {
             is ResultPDF.Success -> {
-                pdfUri = result.uri
-                showDialog = true
+                ouvrirPDF(context, result.uri)
+                navController.navigate("Commandes") {
+                    popUpTo("Commandes") { inclusive = true }
+                    launchSingleTop = true
+                }
             }
             is ResultPDF.Error -> {
                 errorMessage = result.message
@@ -51,6 +54,7 @@ fun FicheCommandeScreen(id: Long, navController: NavController, apiService: ApiS
         }
         isLoading = false
     }
+
 
     // UI principale
     Box(
