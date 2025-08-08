@@ -6,6 +6,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -30,6 +34,7 @@ import kotlinx.coroutines.launch
 fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) } // 👁️ visibilité du mot de passe
     val context = LocalContext.current
     val loginState by viewModel.loginState.collectAsState()
 
@@ -105,7 +110,16 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                         value = password,
                         onValueChange = { password = it },
                         label = { Text("Mot de passe") },
-                        visualTransformation = PasswordVisualTransformation(),
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                    contentDescription = if (passwordVisible) "Masquer" else "Afficher",
+                                    tint = Color.LightGray
+                                )
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         textStyle = LocalTextStyle.current.copy(color = Color.White, fontSize = 15.sp),
                         singleLine = true,

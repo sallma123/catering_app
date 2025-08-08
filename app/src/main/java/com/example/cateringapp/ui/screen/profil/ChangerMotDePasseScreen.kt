@@ -4,6 +4,9 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.cateringapp.data.local.SessionManager
@@ -29,6 +33,10 @@ fun ChangerMotDePasseScreen(navController: NavHostController) {
     var ancienMotDePasse by remember { mutableStateOf("") }
     var nouveauMotDePasse by remember { mutableStateOf("") }
     var confirmationMotDePasse by remember { mutableStateOf("") }
+
+    var ancienVisible by remember { mutableStateOf(false) }
+    var nouveauVisible by remember { mutableStateOf(false) }
+    var confirmationVisible by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -51,8 +59,17 @@ fun ChangerMotDePasseScreen(navController: NavHostController) {
                 value = ancienMotDePasse,
                 onValueChange = { ancienMotDePasse = it },
                 label = { Text("Ancien mot de passe") },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (ancienVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { ancienVisible = !ancienVisible }) {
+                        Icon(
+                            imageVector = if (ancienVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = if (ancienVisible) "Masquer" else "Afficher",
+                            tint = Color.LightGray
+                        )
+                    }
+                },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
@@ -66,13 +83,21 @@ fun ChangerMotDePasseScreen(navController: NavHostController) {
                 modifier = Modifier.fillMaxWidth()
             )
 
-
             OutlinedTextField(
                 value = nouveauMotDePasse,
                 onValueChange = { nouveauMotDePasse = it },
                 label = { Text("Nouveau mot de passe") },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (nouveauVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { nouveauVisible = !nouveauVisible }) {
+                        Icon(
+                            imageVector = if (nouveauVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = if (nouveauVisible) "Masquer" else "Afficher",
+                            tint = Color.LightGray
+                        )
+                    }
+                },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,
@@ -90,8 +115,17 @@ fun ChangerMotDePasseScreen(navController: NavHostController) {
                 value = confirmationMotDePasse,
                 onValueChange = { confirmationMotDePasse = it },
                 label = { Text("Confirmer le mot de passe") },
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (confirmationVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { confirmationVisible = !confirmationVisible }) {
+                        Icon(
+                            imageVector = if (confirmationVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = if (confirmationVisible) "Masquer" else "Afficher",
+                            tint = Color.LightGray
+                        )
+                    }
+                },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedTextColor = Color.White,
                     unfocusedTextColor = Color.White,

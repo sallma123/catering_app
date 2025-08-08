@@ -2,10 +2,12 @@ package com.example.cateringapp.ui.screen.auth
 
 import android.content.Intent
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,12 +16,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cateringapp.R
 import com.example.cateringapp.data.dto.RegisterRequest
 import com.example.cateringapp.data.remote.RetrofitInstance
-
 import com.example.cateringapp.ui.screen.auth.LoginActivity
 import retrofit2.Call
 import retrofit2.Callback
@@ -32,6 +35,7 @@ fun RegisterScreen() {
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) } // 👁️ visibilité du mot de passe
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -103,6 +107,16 @@ fun RegisterScreen() {
                         value = password,
                         onValueChange = { password = it },
                         label = { Text("Mot de passe") },
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                    contentDescription = if (passwordVisible) "Masquer" else "Afficher",
+                                    tint = Color.LightGray
+                                )
+                            }
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color(0xFFFFC107),
