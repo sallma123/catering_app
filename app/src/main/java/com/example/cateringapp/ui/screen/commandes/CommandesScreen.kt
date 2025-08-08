@@ -119,12 +119,14 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                         CommandeSwipeItem(
                             commande = commande,
                             onDeleteClick = {
-                                Toast.makeText(
-                                    context,
-                                    "Suppression bientôt disponible",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            },
+                                viewModel.supprimerCommandeSoft(commande.id!!) {
+                                    Toast.makeText(context, "Commande supprimée", Toast.LENGTH_SHORT).show()
+                                    // Rechargement local au cas où
+                                    viewModel.fetchCommandes()
+                                }
+                            }
+
+                            ,
                             onFicheClick = { navController.navigate("ficheCommande/${commande.id}") },
                             onDuplicateClick = {
                                 val duplicated = commande.toDTO().copy(id = null) // on enlève l'id, mais on garde les données

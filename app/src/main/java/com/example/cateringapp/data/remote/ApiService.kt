@@ -70,6 +70,16 @@ interface ApiService {
     @GET("api/commandes/verifier-date")
     suspend fun verifierDate(@Query("date") date: String): Boolean
 
+    @PUT("api/commandes/{id}/corbeille")
+    suspend fun deplacerVersCorbeille(@Path("id") id: Long): Response<Unit>
 
+    @GET("api/commandes/corbeille")
+    suspend fun getCommandesDansCorbeille(): List<Commande>
+
+    @PUT("api/commandes/{id}/restaurer")
+    suspend fun restaurerCommande(@Path("id") id: Long): Response<Unit>
+
+    @DELETE("api/commandes/{id}")
+    suspend fun supprimerCommandeDefinitivement(@Path("id") id: Long): Response<Unit>
 
 }

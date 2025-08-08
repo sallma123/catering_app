@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import com.example.cateringapp.ui.screen.commandes.*
 import com.example.cateringapp.ui.screen.paiements.PaiementsScreen
 import com.example.cateringapp.ui.screen.calendrier.CalendrierScreen
+import com.example.cateringapp.ui.screen.corbeille.CorbeilleScreen
 import com.example.cateringapp.ui.screen.paiements.AvancesCommandeScreen
 import com.example.cateringapp.ui.screen.profil.ProfilScreen
 import com.example.cateringapp.ui.screen.profil.UploadHeaderFooterScreen
@@ -93,6 +94,9 @@ fun NavigationHost(
             if (commandeId != null) {
                 AvancesCommandeScreen(navController = navController, commandeId = commandeId)
             }
+        }
+        composable("corbeille") {
+            CorbeilleScreen(navController)
         }
 
 

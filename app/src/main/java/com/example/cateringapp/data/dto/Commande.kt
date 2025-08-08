@@ -10,6 +10,8 @@ data class Commande(
     val nombreTables: Int,
     val prixParTable: Double,
     val total: Double,
+    val corbeille: Boolean = false,
+    val dateSuppression: String? = null,
     val date: String,
     var objet: String? = null,
     val commentaire: String? = null,

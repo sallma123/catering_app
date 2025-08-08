@@ -41,6 +41,9 @@ fun dateToLocalDateCompat(date: Date): LocalDate {
 
 @Composable
 fun CalendrierScreen(navController: NavController, viewModel: CommandeViewModel = viewModel()) {
+    LaunchedEffect(Unit) {
+        viewModel.fetchCommandes() // ✅ On recharge aussi ici
+    }
     val commandes by viewModel.commandes.collectAsState()
     val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val commandesDates = commandes.mapNotNull {

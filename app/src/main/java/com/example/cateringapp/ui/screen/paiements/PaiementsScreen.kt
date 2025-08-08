@@ -28,6 +28,7 @@ import java.util.*
 @Composable
 fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel = viewModel()) {
     LaunchedEffect(Unit) {
+        viewModel.fetchCommandes() // ✅ On recharge à l’ouverture
         viewModel.chargerToutesLesAvances(viewModel.commandes.value)
     }
 

@@ -21,24 +21,25 @@ class CommandeViewModel : ViewModel() {
     val commandes: StateFlow<List<Commande>> = _commandes.asStateFlow()
 
     private val _commandesParDate = MutableStateFlow<Map<String, List<Commande>>>(emptyMap())
-    val commandesParDate: StateFlow<Map<String, List<Commande>>> = _commandesParDate.asStateFlow()
 
     private val dateFormatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     init {
         fetchCommandes()
     }
-
-
     fun fetchCommandes() {
         viewModelScope.launch {
             try {
                 val response = RetrofitInstance.api.getCommandes()
-                _commandes.value = response
-                regrouperParDate(response)
+                Log.d("fetchCommandes", "Reçu ${response.size} commandes")
 
-                // ✅ Appel correct ici
-                chargerToutesLesAvances(response)
+                val commandesActives = response.filter { !it.corbeille }
+
+                Log.d("fetchCommandes", "Commandes actives : ${commandesActives.size}")
+
+                _commandes.value = commandesActives
+                regrouperParDate(commandesActives)
+                chargerToutesLesAvances(commandesActives)
 
             } catch (e: Exception) {
                 _commandes.value = emptyList()
@@ -52,21 +53,6 @@ class CommandeViewModel : ViewModel() {
     private fun regrouperParDate(commandes: List<Commande>) {
         val map = commandes.groupBy { it.date }
         _commandesParDate.value = map
-    }
-
-    fun getCommandesPourDate(date: Date): List<Commande> {
-        val key = dateFormatter.format(date)
-        return _commandesParDate.value[key] ?: emptyList()
-    }
-
-    fun dateAvecCommandes(): Set<String> {
-        return _commandesParDate.value.keys
-    }
-
-    fun supprimerCommande(id: Long) {
-        viewModelScope.launch {
-            // TODO : si tu ajoutes suppression plus tard
-        }
     }
 
     fun modifierCommande(
@@ -126,9 +112,6 @@ class CommandeViewModel : ViewModel() {
         return avances.map { it[idCommande] ?: emptyList() }
     }
 
-    fun getCommandeById(id: Long): Commande? {
-        return _commandes.value.find { it.id == id }
-    }
     fun creerCommande(dto: CommandeDTO, onSuccess: (Long) -> Unit, onError: () -> Unit = {}) {
         viewModelScope.launch {
             try {
@@ -188,6 +171,67 @@ class CommandeViewModel : ViewModel() {
                 _avances.value = nouvellesAvances
             } catch (e: Exception) {
                 Log.e("CommandeViewModel", "Erreur chargement avances global : ${e.message}")
+            }
+        }
+    }
+    fun supprimerCommandeSoft(id: Long, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.deplacerVersCorbeille(id)
+                if (response.isSuccessful) {
+                    fetchCommandes()
+                    onSuccess() // ✅ callback ici
+                } else {
+                    Log.e("CommandeViewModel", "Erreur suppression soft: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("CommandeViewModel", "Exception suppression soft: ${e.message}")
+            }
+        }
+    }
+
+    val commandesSupprimees: StateFlow<List<Commande>>
+        get() = commandes.map { list -> list.filter { it.corbeille } }.stateIn(
+            viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList()
+        )
+    private val _corbeille = MutableStateFlow<List<Commande>>(emptyList())
+    val corbeille: StateFlow<List<Commande>> = _corbeille
+    fun fetchCorbeille() {
+        viewModelScope.launch {
+            try {
+                val result = RetrofitInstance.api.getCommandesDansCorbeille()
+                _corbeille.value = result
+            } catch (e: Exception) {
+                Log.e("CommandeViewModel", "Erreur fetchCorbeille : ${e.message}")
+            }
+        }
+    }
+
+    fun restaurerCommande(id: Long, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.restaurerCommande(id)
+                if (response.isSuccessful) {
+                    fetchCorbeille()
+                    fetchCommandes()
+                    onSuccess()
+                }
+            } catch (e: Exception) {
+                Log.e("CommandeViewModel", "Erreur restauration : ${e.message}")
+            }
+        }
+    }
+
+    fun supprimerDefinitivement(id: Long, onSuccess: () -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.supprimerCommandeDefinitivement(id)
+                if (response.isSuccessful) {
+                    fetchCorbeille()
+                    onSuccess()
+                }
+            } catch (e: Exception) {
+                Log.e("CommandeViewModel", "Erreur suppression définitive : ${e.message}")
             }
         }
     }

@@ -11,14 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.cateringapp.data.local.SessionManager
 import com.example.cateringapp.ui.screen.auth.LoginActivity
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.navigation.NavHostController
-
 
 @Composable
 fun ProfilScreen(navController: NavHostController) {
@@ -34,10 +31,7 @@ fun ProfilScreen(navController: NavHostController) {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-
             Spacer(modifier = Modifier.height(20.dp))
-
-
 
             // Bouton pour uploader entête/pied de page
             Button(
@@ -66,8 +60,16 @@ fun ProfilScreen(navController: NavHostController) {
             ) {
                 Text("Se déconnecter", color = Color.Black)
             }
-
-
+            Button(
+                onClick = {
+                    navController.navigate("corbeille")
+                },
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Accéder à la corbeille", color = Color.Black)
+            }
 
         }
     }
