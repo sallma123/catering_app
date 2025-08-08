@@ -1,6 +1,5 @@
 package com.example.cateringapp.ui.screen.commandes
 
-import CommandeDTO
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -158,9 +157,6 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                                     navController.navigate("creerCommande/${commande.typeClient}") {
                                         launchSingleTop = true
                                     }
-
-
-                                    // ❌ SUPPRIMÉ : on ne fait plus le .remove ici
                                 }
                             }
                         )

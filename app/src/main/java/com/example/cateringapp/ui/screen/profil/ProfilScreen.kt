@@ -70,6 +70,16 @@ fun ProfilScreen(navController: NavHostController) {
             ) {
                 Text("Accéder à la corbeille", color = Color.Black)
             }
+            Button(
+                onClick = {
+                    navController.navigate("changerMotDePasse")
+                },
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Changer le mot de passe", color = Color.Black)
+            }
 
         }
     }

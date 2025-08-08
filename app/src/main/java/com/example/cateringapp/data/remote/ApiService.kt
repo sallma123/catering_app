@@ -82,4 +82,11 @@ interface ApiService {
     @DELETE("api/commandes/{id}")
     suspend fun supprimerCommandeDefinitivement(@Path("id") id: Long): Response<Unit>
 
+    @POST("api/auth/change-password")
+    suspend fun changerMotDePasse(
+        @Query("email") email: String,
+        @Query("oldPassword") oldPassword: String,
+        @Query("newPassword") newPassword: String
+    ): Response<Void>
+
 }

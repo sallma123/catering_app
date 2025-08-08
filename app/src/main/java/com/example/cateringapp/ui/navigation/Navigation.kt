@@ -12,6 +12,7 @@ import com.example.cateringapp.ui.screen.paiements.PaiementsScreen
 import com.example.cateringapp.ui.screen.calendrier.CalendrierScreen
 import com.example.cateringapp.ui.screen.corbeille.CorbeilleScreen
 import com.example.cateringapp.ui.screen.paiements.AvancesCommandeScreen
+import com.example.cateringapp.ui.screen.profil.ChangerMotDePasseScreen
 import com.example.cateringapp.ui.screen.profil.ProfilScreen
 import com.example.cateringapp.ui.screen.profil.UploadHeaderFooterScreen
 import com.example.cateringapp.viewmodel.CommandeViewModel
@@ -97,6 +98,9 @@ fun NavigationHost(
         }
         composable("corbeille") {
             CorbeilleScreen(navController)
+        }
+        composable("changerMotDePasse") {
+            ChangerMotDePasseScreen(navController)
         }
 
 
