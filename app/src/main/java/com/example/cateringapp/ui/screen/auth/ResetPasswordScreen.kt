@@ -135,7 +135,10 @@ fun ResetPasswordScreen(
                             isLoading = false
                             if (response.isSuccessful) {
                                 Toast.makeText(context, "Mot de passe modifié avec succès", Toast.LENGTH_LONG).show()
-                                navController.popBackStack()
+                                navController.navigate("login") {
+                                    popUpTo(0) { inclusive = true } // Supprime tout l’historique
+                                }
+
                             } else {
                                 Toast.makeText(context, "Erreur : ${response.code()}", Toast.LENGTH_SHORT).show()
                             }

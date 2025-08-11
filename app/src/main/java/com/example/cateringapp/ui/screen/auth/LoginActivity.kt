@@ -33,6 +33,9 @@ class LoginActivity : ComponentActivity() {
                         composable("reset_password/{email}/{token}") {
                             ResetPasswordScreen(navController, email, token)
                         }
+                        composable("login") {
+                            LoginScreen(navController = navController)
+                        }
                     }
                 }
             }
