@@ -1,6 +1,5 @@
 package com.example.cateringapp.ui.screen.auth
 
-import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -20,22 +19,22 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.example.cateringapp.R
 import com.example.cateringapp.data.dto.RegisterRequest
 import com.example.cateringapp.data.remote.RetrofitInstance
-import com.example.cateringapp.ui.screen.auth.LoginActivity
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 @Composable
-fun RegisterScreen() {
+fun RegisterScreen(navController: NavHostController) {
     val context = LocalContext.current
 
     var fullName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) } // 👁️ visibilité du mot de passe
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -67,6 +66,7 @@ fun RegisterScreen() {
                     modifier = Modifier.padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Nom complet
                     OutlinedTextField(
                         value = fullName,
                         onValueChange = { fullName = it },
@@ -85,6 +85,7 @@ fun RegisterScreen() {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Email
                     OutlinedTextField(
                         value = email,
                         onValueChange = { email = it },
@@ -103,6 +104,7 @@ fun RegisterScreen() {
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    // Mot de passe
                     OutlinedTextField(
                         value = password,
                         onValueChange = { password = it },
@@ -131,6 +133,7 @@ fun RegisterScreen() {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    // Bouton de création de compte
                     Button(
                         onClick = {
                             if (fullName.isBlank() || email.isBlank() || password.isBlank()) {
@@ -143,7 +146,7 @@ fun RegisterScreen() {
                                 override fun onResponse(call: Call<Void>, response: Response<Void>) {
                                     if (response.isSuccessful) {
                                         Toast.makeText(context, "Compte créé avec succès !", Toast.LENGTH_SHORT).show()
-                                        context.startActivity(Intent(context, LoginActivity::class.java))
+                                        navController.popBackStack() // Retour à l'écran login
                                     } else {
                                         Toast.makeText(context, "Erreur ${response.code()}", Toast.LENGTH_SHORT).show()
                                     }

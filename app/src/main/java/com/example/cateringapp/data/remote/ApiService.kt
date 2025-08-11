@@ -89,4 +89,15 @@ interface ApiService {
         @Query("newPassword") newPassword: String
     ): Response<Void>
 
+    @POST("api/auth/forgot-password")
+    suspend fun forgotPassword(@Query("email") email: String): Response<Void>
+
+    @POST("api/auth/reset-password")
+    suspend fun resetPassword(
+        @Query("email") email: String,
+        @Query("token") token: String,
+        @Query("newPassword") newPassword: String
+    ): Response<Void>
+
+
 }

@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
 import com.example.cateringapp.MainActivity
 import com.example.cateringapp.R
 import com.example.cateringapp.data.local.SessionManager
@@ -31,7 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
+fun LoginScreen(navController: NavHostController, viewModel: AuthViewModel = viewModel()) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) } // 👁️ visibilité du mot de passe
@@ -134,12 +135,19 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    Text(
-                        text = "Mot de passe oublié ?",
-                        color = Color(0xFFFFC107),
-                        fontSize = 13.sp,
+                    TextButton(
+                        onClick = {
+                            navController.navigate("forgot_password")
+                        },
                         modifier = Modifier.align(Alignment.End)
-                    )
+                    ) {
+                        Text(
+                            text = "Mot de passe oublié ?",
+                            color = Color(0xFFFFC107),
+                            fontSize = 13.sp
+                        )
+                    }
+
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -160,7 +168,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
 
                     OutlinedButton(
                         onClick = {
-                            context.startActivity(Intent(context, RegisterActivity::class.java))
+                            navController.navigate("register") // ✅ Navigation interne
                         },
                         modifier = Modifier.fillMaxWidth(),
                         border = BorderStroke(1.dp, Color.White),
@@ -169,6 +177,7 @@ fun LoginScreen(viewModel: AuthViewModel = viewModel()) {
                     ) {
                         Text("Créer un compte", fontWeight = FontWeight.SemiBold)
                     }
+
                 }
             }
         }

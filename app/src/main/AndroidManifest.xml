@@ -24,18 +24,31 @@
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.CateringApp">
+
+            <!-- Lancer l'app normalement -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Intercepter le lien cateringapp://reset_password/... -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="cateringapp"
+                    android:host="reset_password" />
+            </intent-filter>
+
         </activity>
+
 
         <!-- Activité principale (menu + navigation) -->
         <activity
             android:name=".MainActivity"
             android:exported="false"
             android:theme="@style/Theme.CateringApp" />
-        <activity android:name=".ui.screen.auth.RegisterActivity" android:exported="false"/>
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
