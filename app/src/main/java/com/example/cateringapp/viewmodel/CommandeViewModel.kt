@@ -235,6 +235,26 @@ class CommandeViewModel : ViewModel() {
             }
         }
     }
+    fun supprimerAvance(idCommande: Long, idAvance: Long) {
+        viewModelScope.launch {
+            try {
+                val response = RetrofitInstance.api.supprimerAvance(idCommande, idAvance)
+                if (response.isSuccessful) {
+                    Log.d("Avance", "✅ Avance supprimée")
+
+                    // 🔄 Recharge la liste des avances pour cette commande
+                    chargerAvancesPourCommande(idCommande)
+
+                    // 🔄 Recharge les commandes (reste à payer mis à jour)
+                    fetchCommandes()
+                } else {
+                    Log.e("Avance", "❌ Erreur suppression avance : ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("Avance", "❌ Exception suppression avance: ${e.message}")
+            }
+        }
+    }
 
 
 

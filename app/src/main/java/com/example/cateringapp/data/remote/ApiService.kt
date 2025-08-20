@@ -99,5 +99,12 @@ interface ApiService {
         @Query("newPassword") newPassword: String
     ): Response<Void>
 
+    @DELETE("api/commandes/{commandeId}/avances/{avanceId}")
+    suspend fun supprimerAvance(
+        @Path("commandeId") commandeId: Long,
+        @Path("avanceId") avanceId: Long
+    ): Response<Void>
+
+
 
 }

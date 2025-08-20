@@ -29,6 +29,7 @@ import java.util.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cateringapp.ui.component.StatsPaiementRow
 import kotlinx.coroutines.flow.map
+import androidx.compose.material.icons.filled.Delete
 
 @Composable
 fun AvancesCommandeScreen(
@@ -88,19 +89,44 @@ fun AvancesCommandeScreen(
             Text("Historique des avances", color = Color.Gray)
         }
 
-        items(avances.value) { avance ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White)
-            ) {
-                Column(Modifier.padding(12.dp)) {
-                    Text("${avance.montant} Dh", fontWeight = FontWeight.Bold)
-                    Text("Date: ${convertIsoToFr(avance.date)}")
+
+
+                items(avances.value) { avance ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text("${avance.montant} Dh", fontWeight = FontWeight.Bold)
+                                Text("Date: ${convertIsoToFr(avance.date)}")
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    // Appel à ta fonction ViewModel pour supprimer
+                                    viewModel.supprimerAvance(commande.id!!, avance.id!!)
+                                    Toast.makeText(context, "Avance supprimée", Toast.LENGTH_SHORT).show()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Supprimer avance",
+                                    tint = Color.Red
+                                )
+                            }
+                        }
+                    }
                 }
-            }
-        }
+
 
         item {
             Spacer(Modifier.height(12.dp))
