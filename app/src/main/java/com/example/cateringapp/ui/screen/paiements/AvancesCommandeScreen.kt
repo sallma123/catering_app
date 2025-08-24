@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,15 +23,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.cateringapp.data.dto.Avance
-import com.example.cateringapp.data.dto.Commande
 import com.example.cateringapp.viewmodel.CommandeViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cateringapp.ui.component.StatsPaiementRow
 import kotlinx.coroutines.flow.map
-import androidx.compose.material.icons.filled.Delete
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AvancesCommandeScreen(
     navController: NavController,
@@ -49,6 +48,9 @@ fun AvancesCommandeScreen(
 
     var montant by remember { mutableStateOf("") }
     var date by remember { mutableStateOf(getTodayFr()) }
+    var type by remember { mutableStateOf("Espèce") } // ✅ par défaut
+    var autreType by remember { mutableStateOf("") } // ✅ zone saisie pour "Autre"
+    var expanded by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
 
     val avances = viewModel.getAvancesForCommande(commande.id ?: 0L).collectAsState(initial = emptyList())
@@ -89,44 +91,41 @@ fun AvancesCommandeScreen(
             Text("Historique des avances", color = Color.Gray)
         }
 
+        items(avances.value) { avance ->
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("${avance.montant} Dh", fontWeight = FontWeight.Bold)
+                        Text("Date: ${convertIsoToFr(avance.date)}")
+                        Text("Type: ${avance.type ?: "Non spécifié"}")
+                    }
 
-
-                items(avances.value) { avance ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text("${avance.montant} Dh", fontWeight = FontWeight.Bold)
-                                Text("Date: ${convertIsoToFr(avance.date)}")
-                            }
-
-                            IconButton(
-                                onClick = {
-                                    // Appel à ta fonction ViewModel pour supprimer
-                                    viewModel.supprimerAvance(commande.id!!, avance.id!!)
-                                    Toast.makeText(context, "Avance supprimée", Toast.LENGTH_SHORT).show()
-                                }
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Supprimer avance",
-                                    tint = Color.Red
-                                )
-                            }
+                    IconButton(
+                        onClick = {
+                            viewModel.supprimerAvance(commande.id!!, avance.id!!)
+                            Toast.makeText(context, "Avance supprimée", Toast.LENGTH_SHORT).show()
                         }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Supprimer avance",
+                            tint = Color.Red
+                        )
                     }
                 }
-
+            }
+        }
 
         item {
             Spacer(Modifier.height(12.dp))
@@ -154,10 +153,54 @@ fun AvancesCommandeScreen(
                     colors = OutlinedTextFieldDefaults.colors(
                         disabledTextColor = Color.White,
                         disabledBorderColor = Color.Gray,
-                        disabledLabelColor = Color.Gray,
-                        disabledTrailingIconColor = Color.Gray,
-                        disabledPlaceholderColor = Color.Gray
+                        disabledLabelColor = Color.Gray
                     )
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // ✅ Dropdown type avance
+            ExposedDropdownMenuBox(
+                expanded = expanded,
+                onExpandedChange = { expanded = !expanded }
+            ) {
+                OutlinedTextField(
+                    value = type,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Type d'avance") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                    modifier = Modifier
+                        .menuAnchor()
+                        .fillMaxWidth(),
+                    colors = textFieldColorsAvance()
+                )
+                ExposedDropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    listOf("Espèce", "Chèque", "Virement", "Autre").forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                type = option
+                                expanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            // ✅ Champ affiché uniquement si "Autre"
+            if (type == "Autre") {
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = autreType,
+                    onValueChange = { autreType = it },
+                    label = { Text("Préciser le type d'avance") },
+                    colors = textFieldColorsAvance(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -170,20 +213,22 @@ fun AvancesCommandeScreen(
                         Toast.makeText(context, "Montant invalide", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
-
                     if (montantVal > reste) {
                         Toast.makeText(context, "Montant dépasse le reste à payer", Toast.LENGTH_SHORT).show()
                         return@Button
                     }
 
+                    val typeFinal = if (type == "Autre") autreType.ifBlank { "Autre" } else type
+
                     viewModel.ajouterAvance(
                         commande.id!!,
-                        Avance(montant = montantVal, date = convertToIsoDate(date))
+                        Avance(montant = montantVal, date = convertToIsoDate(date), type = typeFinal)
                     )
-                    // 🔄 Forcer rafraîchissement global après ajout
                     viewModel.fetchCommandes()
                     montant = ""
                     date = getTodayFr()
+                    type = "Espèce"
+                    autreType = ""
                     Toast.makeText(context, "Avance ajoutée", Toast.LENGTH_SHORT).show()
 
                 },
@@ -197,6 +242,7 @@ fun AvancesCommandeScreen(
         }
     }
 }
+
 
 fun getTodayFr(): String {
     return SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(Date())
@@ -221,7 +267,6 @@ fun convertIsoToFr(dateIso: String): String {
         getTodayFr()
     }
 }
-
 
 @Composable
 fun textFieldColorsAvance() = OutlinedTextFieldDefaults.colors(

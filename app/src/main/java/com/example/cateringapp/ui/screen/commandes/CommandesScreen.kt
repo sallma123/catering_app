@@ -32,11 +32,17 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
     val commandes by viewModel.commandes.collectAsState()
     val scrollState = rememberLazyListState()
     var query by remember { mutableStateOf("") }
-    val context = LocalContext.current
+    var filtre by remember { mutableStateOf("FUTURE") } // ✅ par défaut FUTURE
+    var dateDebut by remember { mutableStateOf<Date?>(null) }
+    var dateFin by remember { mutableStateOf<Date?>(null) }
 
+    val context = LocalContext.current
     val sdfInput = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val sdfMois = SimpleDateFormat("MMMM", Locale.FRENCH)
     val sdfSort = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val today = remember { normalizeDate(Date()) }
+
+    // ✅ Rafraîchissement si besoin
     val shouldRefresh = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.get<Boolean>("refreshCommandes") == true
@@ -47,19 +53,33 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
         }
     }
 
-    val commandesTriees = commandes
-        .filter {
-            query.isBlank() || it.nomClient.contains(query, ignoreCase = true) || it.salle.contains(query, ignoreCase = true)
-        }
-        .sortedBy {
-            try {
-                sdfSort.parse(it.date)
-            } catch (e: Exception) {
-                null
+    // ✅ Filtrage identique à PaiementsScreen
+    val commandesFiltrees = commandes.filter {
+        val nomMatch = query.isBlank() ||
+                it.nomClient.contains(query, ignoreCase = true) ||
+                it.salle.contains(query, ignoreCase = true)
+
+        val date = try { normalizeDate(sdfInput.parse(it.date)!!) } catch (e: Exception) { null }
+
+        val dateOK = when (filtre) {
+            "PASSEE" -> date != null && date.before(today)
+            "FUTURE" -> date != null && !date.before(today)
+            "ENTRE DEUX DATES" -> {
+                if (date != null && dateDebut != null && dateFin != null) {
+                    val debut = normalizeDate(dateDebut!!)
+                    val fin = normalizeDate(dateFin!!)
+                    !date.before(debut) && !date.after(fin)
+                } else false
             }
+            else -> true
         }
 
-    val grouped = commandesTriees.groupBy {
+        nomMatch && dateOK
+    }.sortedBy {
+        try { sdfSort.parse(it.date) } catch (e: Exception) { null }
+    }
+
+    val grouped = commandesFiltrees.groupBy {
         try {
             val date = sdfInput.parse(it.date)
             sdfMois.format(date!!).replaceFirstChar { c -> c.uppercase() }
@@ -73,33 +93,43 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
         containerColor = Color(0xFF121212)
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .height(56.dp),
-                placeholder = {
-                    Text("Rechercher...", color = Color.Gray)
-                },
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White,
-                    cursorColor = Color.White,
-                    focusedBorderColor = Color(0xFFFFC107),
-                    unfocusedBorderColor = Color.Gray,
-                    focusedLabelColor = Color.White,
-                    unfocusedLabelColor = Color.Gray
-                )
-            )
 
+            // 🔎 Barre recherche + filtre
+            Row(Modifier.fillMaxWidth().padding(8.dp)) {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Rechercher...", color = Color.Gray) },
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.White,
+                        unfocusedTextColor = Color.White,
+                        cursorColor = Color.White,
+                        focusedBorderColor = Color(0xFFFFC107),
+                        unfocusedBorderColor = Color.Gray
+                    )
+                )
+                Spacer(Modifier.width(8.dp))
+                FilterDropdown(filtre) { filtre = it }
+            }
+
+            if (filtre == "ENTRE DEUX DATES") {
+                Row(
+                    Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    DateSelector("Date début", dateDebut) { dateDebut = it }
+                    DateSelector("Date fin", dateFin) { dateFin = it }
+                }
+            }
+
+            // 📋 Liste des commandes
             LazyColumn(
                 modifier = Modifier.weight(1f),
                 state = scrollState,
                 verticalArrangement = Arrangement.spacedBy(6.dp),
-                contentPadding = PaddingValues(vertical = 8.dp, horizontal = 8.dp)
+                contentPadding = PaddingValues(8.dp)
             ) {
                 grouped.forEach { (mois, items) ->
                     item {
@@ -108,10 +138,7 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color(0xFF121212))
-                                .padding(vertical = 2.dp, horizontal = 1.dp)
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
                         )
                     }
                     items(items) { commande ->
@@ -120,17 +147,13 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                             onDeleteClick = {
                                 viewModel.supprimerCommandeSoft(commande.id!!) {
                                     Toast.makeText(context, "Commande supprimée", Toast.LENGTH_SHORT).show()
-                                    // Rechargement local au cas où
                                     viewModel.fetchCommandes()
                                 }
-                            }
-
-                            ,
+                            },
                             onFicheClick = { navController.navigate("ficheCommande/${commande.id}") },
                             onDuplicateClick = {
-                                val duplicated = commande.toDTO().copy(id = null) // on enlève l'id, mais on garde les données
-
-                                viewModel.creerCommande(commande.toDTO().copy(id = null),
+                                val duplicated = commande.toDTO().copy(id = null)
+                                viewModel.creerCommande(duplicated,
                                     onSuccess = { newId ->
                                         val commandeClonee = commande.toDTO().copy(id = newId)
                                         navController.currentBackStackEntry
@@ -142,18 +165,13 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                                         }
                                     }
                                 )
-
                             },
                             content = {
                                 CommandeCard(commande) {
                                     val dto = commande.toDTO()
-                                    android.util.Log.d("CommandesScreen", "Commande sélectionnée : id=${commande.id}, typeClient=${commande.typeClient}")
-                                    android.util.Log.d("CommandesScreen", "CommandeDTO généré : id=${dto.id}, nomClient=${dto.nomClient}, produits=${dto.produits.size}")
-
                                     navController.currentBackStackEntry
                                         ?.savedStateHandle
                                         ?.set("commandeExistante", dto)
-
                                     navController.navigate("creerCommande/${commande.typeClient}") {
                                         launchSingleTop = true
                                     }
@@ -164,22 +182,16 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                 }
             }
 
+            // ➕ Boutons ajout commande
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                    .height(IntrinsicSize.Min),
+                modifier = Modifier.fillMaxWidth().padding(8.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf("Particulier", "Entreprise", "Partenaire").forEach { label ->
                     Button(
-                        onClick = {
-                            navController.navigate("creerCommande/${label.uppercase()}")
-                        },
+                        onClick = { navController.navigate("creerCommande/${label.uppercase()}") },
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107)),
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp),
+                        modifier = Modifier.weight(1f).height(40.dp),
                         shape = MaterialTheme.shapes.small
                     ) {
                         Text(
@@ -208,17 +220,13 @@ fun CommandeCard(commande: Commande, onClick: () -> Unit = {}) {
     }
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        elevation = CardDefaults.cardElevation(4.dp),
         shape = MaterialTheme.shapes.medium
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -230,15 +238,65 @@ fun CommandeCard(commande: Commande, onClick: () -> Unit = {}) {
                     fontSize = 16.sp
                 )
                 Text(
-                    text = "${commande.nomClient} | ${commande.salle} | ${if (commande.typeClient.equals("ENTREPRISE", true)) "${commande.nombreTables} personnes" else "${commande.nombreTables} tables"}",
+                    text = "${commande.nomClient} | ${commande.salle} | ${commande.nombreTables} tables",
                     fontSize = 14.sp
                 )
             }
-            Text(
-                text = dateFormatted,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp
-            )
+            Text(text = dateFormatted, fontWeight = FontWeight.Medium, fontSize = 14.sp)
         }
     }
+}
+
+// 🔽 Réutilisés depuis PaiementsScreen
+@Composable
+fun FilterDropdown(selected: String, onSelected: (String) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    val options = listOf("TOUS", "FUTURE", "PASSEE", "ENTRE DEUX DATES")
+    Box {
+        OutlinedButton(onClick = { expanded = true }) { Text(selected) }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            options.forEach {
+                DropdownMenuItem(
+                    text = { Text(it) },
+                    onClick = {
+                        onSelected(it)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DateSelector(label: String, selectedDate: Date?, onDateSelected: (Date) -> Unit) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+
+    val datePickerDialog = remember {
+        android.app.DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                calendar.set(year, month, dayOfMonth)
+                onDateSelected(calendar.time)
+            },
+            calendar.get(Calendar.YEAR),
+            calendar.get(Calendar.MONTH),
+            calendar.get(Calendar.DAY_OF_MONTH)
+        )
+    }
+    OutlinedButton(onClick = { datePickerDialog.show() }) {
+        Text(selectedDate?.let { sdf.format(it) } ?: label)
+    }
+}
+
+fun normalizeDate(date: Date): Date {
+    val cal = Calendar.getInstance()
+    cal.time = date
+    cal.set(Calendar.HOUR_OF_DAY, 0)
+    cal.set(Calendar.MINUTE, 0)
+    cal.set(Calendar.SECOND, 0)
+    cal.set(Calendar.MILLISECOND, 0)
+    return cal.time
 }

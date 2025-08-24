@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Avance(
     val id: Long? = null,
+    val montant: Double,
     val date: String,
-    val montant: Double
+    val type: String? = null // ✅ nouveau champ
 )

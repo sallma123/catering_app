@@ -18,8 +18,8 @@ fun StatsPaiementRow(total: Double, paye: Double, reste: Double) {
             .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        StatBox("CA", total)
-        StatBox("Payé", paye)
+        StatBox("Total", total)
+        StatBox("Avance", paye)
         StatBox("Reste", reste)
     }
 }
@@ -29,9 +29,9 @@ fun StatBox(label: String, value: Double) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(label, color = Color.Gray, fontSize = 14.sp)
         Text(
-            "${"%.2f".format(value)} Dh",
+            "${"%.2f".format(value)}",
             color = Color(0xFFFFC107),
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold
         )
     }

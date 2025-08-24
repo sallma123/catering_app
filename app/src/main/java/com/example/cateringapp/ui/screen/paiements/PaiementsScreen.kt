@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.cateringapp.data.dto.Commande
@@ -31,39 +30,39 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
         viewModel.fetchCommandes() // ✅ On recharge à l’ouverture
         viewModel.chargerToutesLesAvances(viewModel.commandes.value)
     }
-
     val commandes by viewModel.commandes.collectAsState()
     val avancesMap by viewModel.avances.collectAsState()
-    val context = LocalContext.current
 
     var query by remember { mutableStateOf("") }
-    var filtre by remember { mutableStateOf("TOUS") }
+    var filtre by remember { mutableStateOf("FUTURE") }
     var dateDebut by remember { mutableStateOf<Date?>(null) }
     var dateFin by remember { mutableStateOf<Date?>(null) }
 
     val sdfInput = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     val sdfMois = SimpleDateFormat("MMMM", Locale.FRENCH)
     val sdfSort = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    val today = remember { Date() }
-
-
+    val today = remember { normalizeDate(Date()) } // ✅ aujourd’hui à minuit
 
     val commandesFiltrees = commandes.filter {
         val nomMatch = it.nomClient.contains(query, ignoreCase = true) || it.salle.contains(query, ignoreCase = true)
-        val date = try { sdfInput.parse(it.date) } catch (e: Exception) { null }
+        val date = try { normalizeDate(sdfInput.parse(it.date)!!) } catch (e: Exception) { null }
+
         val dateOK = when (filtre) {
             "PASSEE" -> date != null && date.before(today)
-            "FUTURE" -> date != null && date.after(today)
+            "FUTURE" -> date != null && !date.before(today) // ✅ inclut aujourd’hui
             "ENTRE DEUX DATES" -> {
-                val debutOk = dateDebut?.let { date != null && !date.before(it) } ?: false
-                val finOk = dateFin?.let { date != null && !date.after(it) } ?: false
-                debutOk && finOk
+                if (date != null && dateDebut != null && dateFin != null) {
+                    val debut = normalizeDate(dateDebut!!)
+                    val fin = normalizeDate(dateFin!!)
+                    !date.before(debut) && !date.after(fin) // ✅ inclusif
+                } else false
             }
             else -> true
         }
 
         nomMatch && dateOK
     }
+
 
     val totalCA = commandesFiltrees.sumOf { it.total }
     val totalPaye = commandesFiltrees.sumOf { commande ->
@@ -237,4 +236,13 @@ fun DateSelector(label: String, selectedDate: Date?, onDateSelected: (Date) -> U
     OutlinedButton(onClick = { datePickerDialog.show() }) {
         Text(selectedDate?.let { sdf.format(it) } ?: label)
     }
+}
+fun normalizeDate(date: Date): Date {
+    val cal = Calendar.getInstance()
+    cal.time = date
+    cal.set(Calendar.HOUR_OF_DAY, 0)
+    cal.set(Calendar.MINUTE, 0)
+    cal.set(Calendar.SECOND, 0)
+    cal.set(Calendar.MILLISECOND, 0)
+    return cal.time
 }
