@@ -152,10 +152,13 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                             },
                             onFicheClick = { navController.navigate("ficheCommande/${commande.id}") },
                             onDuplicateClick = {
-                                val duplicated = commande.toDTO().copy(id = null)
+                                val duplicated = commande.toDTO().copy(
+                                    id = null,
+                                    nomClient = "" // ✅ on vide le client
+                                )
                                 viewModel.creerCommande(duplicated,
                                     onSuccess = { newId ->
-                                        val commandeClonee = commande.toDTO().copy(id = newId)
+                                        val commandeClonee = duplicated.copy(id = newId) // ⚠️ on repart de duplicated pour garder le nom vide
                                         navController.currentBackStackEntry
                                             ?.savedStateHandle
                                             ?.set("commandeExistante", commandeClonee)
@@ -165,7 +168,8 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                                         }
                                     }
                                 )
-                            },
+                            }
+,
                             content = {
                                 CommandeCard(commande) {
                                     val dto = commande.toDTO()
