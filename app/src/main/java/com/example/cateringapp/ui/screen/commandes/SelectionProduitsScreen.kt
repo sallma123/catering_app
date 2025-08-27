@@ -41,7 +41,20 @@ fun SelectionProduitsScreen(
     var total by remember { mutableStateOf(0.0) }
 
     val sections = remember {
-        val initialSections = getSectionsPourTypeCommande(commandeDTO.typeCommande)
+        val initialSections = getSectionsPourTypeCommande(commandeDTO.typeCommande).toMutableList()
+
+        // ✅ Ajout de suppléments par défaut
+        val suppSection = initialSections.find { it.titre == "Supplément" }
+        if (suppSection != null && suppSection.produits.isEmpty()) {
+            suppSection.produits.addAll(
+                listOf(
+                    ProduitCommande("Pièce montée", "Supplément", 0.0),
+                    ProduitCommande("Prestataire", "Supplément", 0.0)
+                )
+            )
+        }
+
+        // ✅ Remplissage avec les produits déjà présents dans commandeDTO
         commandeDTO.produits.forEach { produit ->
             initialSections.find { it.titre == produit.categorie }?.let { section ->
                 val index = section.produits.indexOfFirst { it.nom == produit.nom }
@@ -56,6 +69,7 @@ fun SelectionProduitsScreen(
                 }
             }
         }
+
         initialSections.toMutableStateList()
     }
 
@@ -118,13 +132,43 @@ fun SelectionProduitsScreen(
                             },
                             colors = CheckboxDefaults.colors(checkedColor = Color(0xFFFFC107), uncheckedColor = Color.White)
                         )
-                        Column(modifier = Modifier.padding(start = 4.dp)) {
+
+                        Column(modifier = Modifier.padding(start = 4.dp).weight(1f)) {
                             Text(produit.nom, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+
                             if (section.titre == "Supplément") {
+                                // ✅ Champs prix et quantité modifiables (prix vide par défaut, quantite = 1)
+                                var quantiteText by remember { mutableStateOf(produit.quantite?.toString() ?: "1") }
+                                var prixText by remember { mutableStateOf(if (produit.prix > 0) produit.prix.toString() else "") }
+
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("${(produit.quantite ?: 1)} x", color = Color.LightGray, fontSize = 12.sp)
-                                    Spacer(Modifier.width(4.dp))
-                                    Text("${produit.prix} DH", color = Color.Gray, fontSize = 12.sp)
+                                    OutlinedTextField(
+                                        value = quantiteText,
+                                        onValueChange = {
+                                            quantiteText = it
+                                            val q = it.toIntOrNull() ?: 1
+                                            section.produits[index] = produit.copy(quantite = q)
+                                            recalculerTotal()
+                                        },
+                                        label = { Text("Qté") },
+                                        modifier = Modifier.width(70.dp),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        colors = produitTextFieldColors()
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    OutlinedTextField(
+                                        value = prixText,
+                                        onValueChange = {
+                                            prixText = it
+                                            val p = it.toDoubleOrNull() ?: 0.0
+                                            section.produits[index] = produit.copy(prix = p)
+                                            recalculerTotal()
+                                        },
+                                        label = { Text("Prix") },
+                                        modifier = Modifier.width(100.dp),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                        colors = produitTextFieldColors()
+                                    )
                                 }
                             } else if (produit.prix > 0) {
                                 Text("${produit.prix} DH", color = Color.Gray, fontSize = 12.sp)
@@ -135,6 +179,7 @@ fun SelectionProduitsScreen(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
+                // ✅ Formulaire ajout d'un nouveau produit
                 Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                     OutlinedTextField(
                         value = newNom,
@@ -246,6 +291,48 @@ fun SelectionProduitsScreen(
                 Text("Valider", fontWeight = FontWeight.Bold, color = Color.Black)
             }
 
+            Button(
+                onClick = {
+                    val prix = prixParTable.toDoubleOrNull() ?: 0.0
+                    val produits = sections.flatMap { it.produits }.filter { it.selectionne }
+
+                    if (produits.isEmpty()) {
+                        Toast.makeText(context, "Sélectionnez au moins un produit", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    val isModification = commandeDTO.id != null
+                    val commandeFinale = commandeDTO.copy(prixParTable = prix, produits = produits)
+
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val response = if (isModification) {
+                                apiService.modifierCommande(commandeFinale.id!!, commandeFinale)
+                            } else {
+                                apiService.creerCommande(commandeFinale)
+                            }
+                            withContext(Dispatchers.Main) {
+                                if (response.isSuccessful) {
+                                    val id = if (isModification) commandeFinale.id!! else response.body()!!.id
+                                    commandeViewModel.fetchCommandes()
+                                    // ✅ Navigation vers la page d'avances au lieu de ficheCommande
+                                    navController.navigate("avances/$id")
+                                } else {
+                                    Toast.makeText(context, "Erreur API", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(context, "Erreur réseau", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
+            ) {
+                Text("Ajouter Avances", fontWeight = FontWeight.Bold, color = Color.Black)
+            }
             Spacer(modifier = Modifier.height(100.dp))
         }
     }

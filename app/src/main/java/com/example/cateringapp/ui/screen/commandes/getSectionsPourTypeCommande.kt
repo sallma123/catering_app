@@ -5,7 +5,12 @@ import com.example.cateringapp.data.dto.ProduitCommande
 import com.example.cateringapp.data.dto.SectionProduit
 
 fun getSectionsPourTypeCommande(typeCommande: String): List<SectionProduit> {
-    val supplement = mutableListOf<ProduitCommande>()
+    val supplement = mutableListOf(
+        ProduitCommande("Pièce montée", "Supplément", 0.0),
+        ProduitCommande("Prestataire", "Supplément", 0.0)
+    )
+
+
 
     return when (typeCommande.uppercase()) {
         "BUFFET_DE_SOUTENANCE", "REPAS_COFFRET", "SEMINAIRE" -> listOf(
@@ -98,6 +103,7 @@ fun getSectionsPourTypeCommande(typeCommande: String): List<SectionProduit> {
                 ProduitCommande("Trio salades: quinoa, Boruta et Guacamole", "Diner", 0.0),
                 ProduitCommande("Poulet dermira", "Diner", 0.0),
                 ProduitCommande("Duo pastillas", "Diner", 0.0),
+                ProduitCommande("Pastilla poulet et amandes", "Diner", 0.0),
                 ProduitCommande("Pastilla Poisson royale", "Diner", 0.0),
                 ProduitCommande("Mechwi d'agneau avec garniture", "Diner", 0.0),
                 ProduitCommande("Chwa malaki avec garniture", "Diner", 0.0),

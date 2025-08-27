@@ -169,7 +169,7 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                                     }
                                 )
                             }
-,
+                            ,
                             content = {
                                 CommandeCard(commande) {
                                     val dto = commande.toDTO()
