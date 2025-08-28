@@ -142,23 +142,47 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                         )
                     }
                     items(items) { commande ->
+                        var showDeleteDialog by remember { mutableStateOf(false) }
+
+                        if (showDeleteDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showDeleteDialog = false },
+                                title = { Text("Confirmation") },
+                                text = { Text("Êtes-vous sûr de vouloir déplacer cette commande à la corbeille ?") },
+                                confirmButton = {
+                                    TextButton(onClick = {
+                                        viewModel.supprimerCommandeSoft(commande.id!!) {
+                                            Toast.makeText(context, "Commande déplacée dans la corbeille", Toast.LENGTH_SHORT).show()
+                                            viewModel.fetchCommandes()
+                                        }
+                                        showDeleteDialog = false
+                                    }) {
+                                        Text("✅ Oui")
+                                    }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showDeleteDialog = false }) {
+                                        Text("❌ Annuler")
+                                    }
+                                }
+                            )
+                        }
+
                         CommandeSwipeItem(
                             commande = commande,
                             onDeleteClick = {
-                                viewModel.supprimerCommandeSoft(commande.id!!) {
-                                    Toast.makeText(context, "Commande supprimée", Toast.LENGTH_SHORT).show()
-                                    viewModel.fetchCommandes()
-                                }
+                                // 👉 Au lieu de supprimer direct, on ouvre le dialogue
+                                showDeleteDialog = true
                             },
                             onFicheClick = { navController.navigate("ficheCommande/${commande.id}") },
                             onDuplicateClick = {
                                 val duplicated = commande.toDTO().copy(
                                     id = null,
-                                    nomClient = "" // ✅ on vide le client
+                                    nomClient = ""
                                 )
                                 viewModel.creerCommande(duplicated,
                                     onSuccess = { newId ->
-                                        val commandeClonee = duplicated.copy(id = newId) // ⚠️ on repart de duplicated pour garder le nom vide
+                                        val commandeClonee = duplicated.copy(id = newId)
                                         navController.currentBackStackEntry
                                             ?.savedStateHandle
                                             ?.set("commandeExistante", commandeClonee)
@@ -168,8 +192,7 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                                         }
                                     }
                                 )
-                            }
-                            ,
+                            },
                             content = {
                                 CommandeCard(commande) {
                                     val dto = commande.toDTO()
@@ -183,6 +206,7 @@ fun CommandesScreen(navController: NavController, viewModel: CommandeViewModel =
                             }
                         )
                     }
+
                 }
             }
 

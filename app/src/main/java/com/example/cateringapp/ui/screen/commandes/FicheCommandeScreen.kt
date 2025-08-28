@@ -23,7 +23,6 @@ import com.example.cateringapp.data.remote.ApiService
 import com.example.cateringapp.data.remote.RetrofitInstance
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.ResponseBody
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -55,7 +54,6 @@ fun FicheCommandeScreen(id: Long, navController: NavController, apiService: ApiS
         isLoading = false
     }
 
-
     // UI principale
     Box(
         modifier = Modifier
@@ -80,11 +78,9 @@ fun FicheCommandeScreen(id: Long, navController: NavController, apiService: ApiS
                     confirmButton = {
                         TextButton(onClick = {
                             navController.popBackStack("Commandes", inclusive = false)
-                        })
- {
+                        }) {
                             Text("❌ Fermer")
                         }
-
                     }
                 )
             }
@@ -113,7 +109,6 @@ fun FicheCommandeScreen(id: Long, navController: NavController, apiService: ApiS
                             }) {
                                 Text("❌ Fermer")
                             }
-
                         }
                     },
                     icon = {
@@ -124,7 +119,6 @@ fun FicheCommandeScreen(id: Long, navController: NavController, apiService: ApiS
                     titleContentColor = Color.Black,
                     textContentColor = Color.DarkGray
                 )
-
             }
         }
     }
@@ -133,7 +127,6 @@ fun FicheCommandeScreen(id: Long, navController: NavController, apiService: ApiS
     BackHandler(enabled = !isLoading && !showDialog) {
         navController.popBackStack("Commandes", inclusive = false)
     }
-
 }
 
 private sealed class ResultPDF {
@@ -146,7 +139,16 @@ private suspend fun telechargerEtEnregistrerPDF(context: Context, id: Long, api:
         try {
             val response = api.telechargerFiche(id).execute()
             if (response.isSuccessful && response.body() != null) {
-                val pdfFile = File(context.getExternalFilesDir(null), "fiche_commande_$id.pdf")
+
+                // 🔹 Récupérer le vrai nom depuis Content-Disposition
+                val headers = response.headers()
+                val contentDisposition = headers["Content-Disposition"]
+                val filename = contentDisposition?.substringAfter("filename=")?.replace("\"", "")
+                    ?: "fiche_commande_$id.pdf"
+
+                // 🔹 Créer le fichier avec ce nom
+                val pdfFile = File(context.getExternalFilesDir(null), filename)
+
                 val inputStream: InputStream = response.body()!!.byteStream()
                 val outputStream = FileOutputStream(pdfFile)
 
@@ -185,4 +187,3 @@ private fun ouvrirPDF(context: Context, uri: Uri) {
         Toast.makeText(context, "Aucune application pour ouvrir le PDF", Toast.LENGTH_LONG).show()
     }
 }
-

@@ -92,6 +92,30 @@ fun AvancesCommandeScreen(
         }
 
         items(avances.value) { avance ->
+            var showDeleteDialog by remember { mutableStateOf(false) }
+
+            if (showDeleteDialog) {
+                AlertDialog(
+                    onDismissRequest = { showDeleteDialog = false },
+                    title = { Text("Confirmation") },
+                    text = { Text("Êtes-vous sûr de vouloir supprimer cette avance ?") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            viewModel.supprimerAvance(commande.id!!, avance.id!!)
+                            Toast.makeText(context, "Avance supprimée", Toast.LENGTH_SHORT).show()
+                            showDeleteDialog = false
+                        }) {
+                            Text("✅ Oui")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showDeleteDialog = false }) {
+                            Text("❌ Annuler")
+                        }
+                    }
+                )
+            }
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -113,8 +137,8 @@ fun AvancesCommandeScreen(
 
                     IconButton(
                         onClick = {
-                            viewModel.supprimerAvance(commande.id!!, avance.id!!)
-                            Toast.makeText(context, "Avance supprimée", Toast.LENGTH_SHORT).show()
+                            // 👉 au lieu de supprimer direct, on affiche le dialogue
+                            showDeleteDialog = true
                         }
                     ) {
                         Icon(
@@ -126,6 +150,7 @@ fun AvancesCommandeScreen(
                 }
             }
         }
+
 
         item {
             Spacer(Modifier.height(12.dp))
@@ -239,6 +264,20 @@ fun AvancesCommandeScreen(
                 Spacer(Modifier.width(8.dp))
                 Text("Ajouter Avance", color = Color.Black)
             }
+            Button(
+                onClick = {
+
+                    viewModel.fetchCommandes()
+                    navController.navigate("ficheCommande/${commande.id}")
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFFC107))
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Ajouter", tint = Color.Black)
+                Spacer(Modifier.width(8.dp))
+                Text("Générer la fiche", color = Color.Black)
+            }
+
         }
     }
 }

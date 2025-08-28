@@ -4,7 +4,7 @@ import CommandeDTO
 
 fun Commande.toDTO(): CommandeDTO {
     return CommandeDTO(
-        id = this.id, // ✅ Très important
+        id = this.id,
         nomClient = this.nomClient,
         salle = this.salle,
         nombreTables = this.nombreTables,
@@ -15,7 +15,8 @@ fun Commande.toDTO(): CommandeDTO {
         date = this.date,
         objet = this.objet,
         commentaire = commentaire,
-        produits = this.produits // ✅ Et pas emptyList()
+        produits = this.produits,
+        signatureCachet = this.signatureCachet
     )
 }
 

@@ -9,6 +9,7 @@ data class CommandeDTO(
     val prixParTable: Double,
     val typeClient: String,
     val typeCommande: String,
+    val signatureCachet: Boolean = false,
     val statut: String,
     val date: String,
     val produits: List<ProduitCommande> = emptyList(),

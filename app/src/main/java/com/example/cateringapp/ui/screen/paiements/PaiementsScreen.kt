@@ -133,13 +133,14 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
                         PaiementCard(
                             commande = commande,
                             reste = reste,
-                            onDollarClick = {
+                            onClick = {
                                 commande.id?.let { id ->
                                     navController.navigate("avancesCommande/$id")
                                 }
                             }
                         )
                     }
+
                 }
             }
         }
@@ -147,8 +148,7 @@ fun PaiementsScreen(navController: NavController, viewModel: CommandeViewModel =
 }
 
 @Composable
-fun PaiementCard(commande: Commande, reste: Double, onDollarClick: () -> Unit)
- {
+fun PaiementCard(commande: Commande, reste: Double, onClick: () -> Unit) {
     val dateFormatted = try {
         val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(commande.date)
         SimpleDateFormat("dd/MM", Locale.getDefault()).format(date!!)
@@ -159,27 +159,30 @@ fun PaiementCard(commande: Commande, reste: Double, onDollarClick: () -> Unit)
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { },
+            .clickable { onClick() }, // ✅ clic sur toute la carte
         colors = cardColors(containerColor = Color.White),
         shape = MaterialTheme.shapes.medium,
         elevation = cardElevation(4.dp)
     ) {
         Column(Modifier.padding(12.dp)) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween,verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     "${commande.typeCommande} : ${commande.total} Dh",
                     color = Color(0xFFFFC107),
                     fontWeight = FontWeight.Bold
                 )
-                IconButton(onClick = { onDollarClick() }) {
-                    Icon(Icons.Default.AttachMoney, contentDescription = "Avances", tint = Color.Green)
-                }
+                // ❌ supprimé le bouton dollar
             }
             Text("${commande.nomClient} | ${commande.salle} | ${commande.nombreTables} tables | $dateFormatted")
             Text("Reste à payer : ${"%.2f".format(reste)} Dh", fontWeight = FontWeight.SemiBold)
         }
     }
 }
+
 
 @Composable
 fun FilterDropdown(selected: String, onSelected: (String) -> Unit) {

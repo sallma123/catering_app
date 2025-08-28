@@ -16,7 +16,9 @@ data class Commande(
     var objet: String? = null,
     val commentaire: String? = null,
     val produits: List<ProduitCommande> = emptyList(),
-    var avances: List<Avance> = emptyList())
+    var avances: List<Avance> = emptyList(),
+    var signatureCachet: Boolean = false)
+
 {
     val resteAPayer: Double
         get() = total - (avances?.sumOf { it.montant } ?: 0.0)

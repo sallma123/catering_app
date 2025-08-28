@@ -40,6 +40,9 @@ fun SelectionProduitsScreen(
     var prixParTable by remember { mutableStateOf(commandeDTO.prixParTable.takeIf { it > 0 }?.toString() ?: "") }
     var total by remember { mutableStateOf(0.0) }
 
+    // ✅ Checkbox pour signature cachet
+    var signatureCachet by remember { mutableStateOf(commandeDTO.signatureCachet) }
+
     val sections = remember {
         val initialSections = getSectionsPourTypeCommande(commandeDTO.typeCommande).toMutableList()
 
@@ -137,7 +140,7 @@ fun SelectionProduitsScreen(
                             Text(produit.nom, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
 
                             if (section.titre == "Supplément") {
-                                // ✅ Champs prix et quantité modifiables (prix vide par défaut, quantite = 1)
+                                // ✅ Champs prix et quantité modifiables
                                 var quantiteText by remember { mutableStateOf(produit.quantite?.toString() ?: "1") }
                                 var prixText by remember { mutableStateOf(if (produit.prix > 0) produit.prix.toString() else "") }
 
@@ -247,6 +250,24 @@ fun SelectionProduitsScreen(
             Spacer(modifier = Modifier.height(8.dp))
             Text("Total : %.2f DH".format(total), color = Color.White, fontSize = 18.sp)
 
+            Spacer(modifier = Modifier.height(8.dp))
+//Checkbox "Signature cachet" uniquement pour client particulier ou entreprise
+            if (commandeDTO.typeClient == "PARTICULIER" || commandeDTO.typeClient == "ENTREPRISE") {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = signatureCachet,
+                        onCheckedChange = { signatureCachet = it },
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = Color(0xFFFFC107),
+                            uncheckedColor = Color.White
+                        )
+                    )
+                    Text("Afficher la signature/cachet", color = Color.White, fontSize = 15.sp)
+                }
+            }
+
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
@@ -260,7 +281,11 @@ fun SelectionProduitsScreen(
                     }
 
                     val isModification = commandeDTO.id != null
-                    val commandeFinale = commandeDTO.copy(prixParTable = prix, produits = produits)
+                    val commandeFinale = commandeDTO.copy(
+                        prixParTable = prix,
+                        produits = produits,
+                        signatureCachet = signatureCachet // ✅ ajouté ici
+                    )
 
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
@@ -302,7 +327,11 @@ fun SelectionProduitsScreen(
                     }
 
                     val isModification = commandeDTO.id != null
-                    val commandeFinale = commandeDTO.copy(prixParTable = prix, produits = produits)
+                    val commandeFinale = commandeDTO.copy(
+                        prixParTable = prix,
+                        produits = produits,
+                        signatureCachet = signatureCachet // ✅ ajouté aussi ici
+                    )
 
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
@@ -315,8 +344,7 @@ fun SelectionProduitsScreen(
                                 if (response.isSuccessful) {
                                     val id = if (isModification) commandeFinale.id!! else response.body()!!.id
                                     commandeViewModel.fetchCommandes()
-                                    // ✅ Navigation vers la page d'avances au lieu de ficheCommande
-                                    navController.navigate("avances/$id")
+                                    navController.navigate("avancesCommande/$id")
                                 } else {
                                     Toast.makeText(context, "Erreur API", Toast.LENGTH_SHORT).show()
                                 }
