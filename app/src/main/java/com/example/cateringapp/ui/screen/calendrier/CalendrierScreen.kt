@@ -127,7 +127,15 @@ fun CalendrierScreen(navController: NavController, viewModel: CommandeViewModel 
                                 val date = currentMonth.atDay(dayCounter)
                                 val isToday = date == today
                                 val isSelected = date == selectedDate
-                                val hasCommande = commandesDates.contains(date)
+                                val commandesPourLeJour = commandes.count {
+                                    try {
+                                        val commandeDate = sdf.parse(it.date)?.let { d -> dateToLocalDateCompat(d) }
+                                        commandeDate == date
+                                    } catch (e: Exception) {
+                                        false
+                                    }
+                                }
+
 
                                 Box(
                                     modifier = Modifier
@@ -161,15 +169,23 @@ fun CalendrierScreen(navController: NavController, viewModel: CommandeViewModel 
                                             )
                                         }
                                         Spacer(modifier = Modifier.height(0.1.dp))
-                                        if (hasCommande && !isSelected) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(6.dp)
-                                                    .background(Color(0xFFFFC107), shape = CircleShape)
-                                            )
+                                        if (commandesPourLeJour > 0 && !isSelected) {
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(2.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                repeat(commandesPourLeJour.coerceAtMost(5)) { // limite max 5 points pour ne pas dépasser
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(6.dp)
+                                                            .background(Color(0xFFFFC107), shape = CircleShape)
+                                                    )
+                                                }
+                                            }
                                         } else {
                                             Spacer(modifier = Modifier.height(6.dp))
                                         }
+
                                     }
                                 }
                                 dayCounter++
