@@ -7,9 +7,8 @@ import androidx.compose.runtime.remember
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.navDeepLink
-import com.example.cateringapp.ui.screen.auth.ForgotPasswordScreen
-import com.example.cateringapp.ui.screen.auth.ResetPasswordScreen
+import com.example.cateringapp.ui.screen.catalogue.CatalogueScreen
+import com.example.cateringapp.viewmodel.CatalogueViewModel
 import com.example.cateringapp.ui.screen.commandes.*
 import com.example.cateringapp.ui.screen.paiements.PaiementsScreen
 import com.example.cateringapp.ui.screen.calendrier.CalendrierScreen
@@ -104,6 +103,9 @@ fun NavigationHost(
         }
         composable("changerMotDePasse") {
             ChangerMotDePasseScreen(navController)
+        }
+        composable("catalogue") {
+            CatalogueScreen(navController = navController)
         }
 
 

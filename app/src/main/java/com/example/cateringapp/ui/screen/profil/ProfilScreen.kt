@@ -33,7 +33,21 @@ fun ProfilScreen(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Bouton pour uploader entête/pied de page
+            // ✅ Bouton gestion catalogue
+            Button(
+                onClick = {
+                    navController.navigate("catalogue")
+                },
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text("Gérer le catalogue", color = Color.Black)
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ✅ Bouton pour uploader entête/pied de page
             Button(
                 onClick = {
                     navController.navigate("uploadHeaderFooter")
@@ -60,6 +74,7 @@ fun ProfilScreen(navController: NavHostController) {
             ) {
                 Text("Se déconnecter", color = Color.Black)
             }
+
             Button(
                 onClick = {
                     navController.navigate("corbeille")
@@ -70,6 +85,7 @@ fun ProfilScreen(navController: NavHostController) {
             ) {
                 Text("Accéder à la corbeille", color = Color.Black)
             }
+
             Button(
                 onClick = {
                     navController.navigate("changerMotDePasse")
@@ -80,8 +96,8 @@ fun ProfilScreen(navController: NavHostController) {
             ) {
                 Text("Changer le mot de passe", color = Color.Black)
             }
-
         }
     }
 }
+
 

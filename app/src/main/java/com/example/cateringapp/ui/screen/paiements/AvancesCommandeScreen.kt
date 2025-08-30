@@ -277,7 +277,7 @@ fun AvancesCommandeScreen(
                 Spacer(Modifier.width(8.dp))
                 Text("Générer la fiche", color = Color.Black)
             }
-
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
 }

@@ -2,9 +2,11 @@ package com.example.cateringapp.data.remote
 
 import CommandeDTO
 import com.example.cateringapp.data.dto.Avance
+import com.example.cateringapp.data.dto.CategorieProduit
 import com.example.cateringapp.data.dto.Commande
 import com.example.cateringapp.data.dto.LoginRequest
 import com.example.cateringapp.data.dto.LoginResponse
+import com.example.cateringapp.data.dto.ProduitDefini
 import com.example.cateringapp.data.dto.RegisterRequest
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
@@ -103,6 +105,38 @@ interface ApiService {
     suspend fun supprimerAvance(
         @Path("commandeId") commandeId: Long,
         @Path("avanceId") avanceId: Long
+    ): Response<Void>
+
+    // 🔹 Charger le catalogue par type de commande
+    @GET("api/catalogue/{typeCommande}")
+    suspend fun getCatalogue(@Path("typeCommande") typeCommande: String): List<CategorieProduit>
+
+    // 🔹 Catégories
+    @POST("api/catalogue")
+    suspend fun creerCategorie(@Body categorie: CategorieProduit): CategorieProduit
+
+    @PUT("api/catalogue/{id}")
+    suspend fun modifierCategorie(@Path("id") id: Long, @Body categorie: CategorieProduit): CategorieProduit
+
+    @DELETE("api/catalogue/{id}")
+    suspend fun supprimerCategorie(@Path("id") id: Long): Response<Void>
+
+    // 🔹 Produits définis
+    @POST("api/catalogue/{categorieId}/produits")
+    suspend fun creerProduit(
+        @Path("categorieId") categorieId: Long,
+        @Body produit: ProduitDefini
+    ): ProduitDefini
+
+    @PUT("api/catalogue/produits/{id}")
+    suspend fun modifierProduit(
+        @Path("id") id: Long,
+        @Body produit: ProduitDefini
+    ): ProduitDefini
+
+    @DELETE("api/catalogue/produits/{id}")
+    suspend fun supprimerProduit(
+        @Path("id") id: Long
     ): Response<Void>
 
 
