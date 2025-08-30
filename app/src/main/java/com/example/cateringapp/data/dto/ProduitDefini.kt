@@ -5,6 +5,6 @@ import java.io.Serializable
 data class ProduitDefini(
     val id: Long? = null,
     val nom: String,
-    val ordreAffichage: Int,
+    var ordreAffichage: Int,
     val categorieId: Long
 ) : Serializable
